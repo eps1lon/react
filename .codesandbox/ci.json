@@ -1,6 +1,6 @@
 {
   "packages": ["packages/react", "packages/react-dom", "packages/scheduler"],
-  "buildCommand": "build --type=NODE react/index,react-dom/index,react-dom/server,scheduler/index,scheduler/tracing",
+  "buildCommand": "build --type=NODE,FB_WWW_DEV react/index,react-dom/index,scheduler/index && cp build/facebook-www/React-dev.js build/node_modules/react/cjs/react.development.js && cp build/facebook-www/ReactDOM-dev.js build/node_modules/react-dom/cjs/react-dom.development.js && cp build/facebook-www/Scheduler-dev.js build/node_modules/scheduler/cjs/scheduler.development.js",
   "publishDirectory": {
     "react": "build/node_modules/react",
     "react-dom": "build/node_modules/react-dom",
