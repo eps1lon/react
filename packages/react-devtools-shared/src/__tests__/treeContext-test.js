@@ -943,18 +943,10 @@ describe('TreeListContext', () => {
       );
 
       utils.act(() => TestRenderer.create(<Contexts />));
-      let statefulStore = {state, store};
-      expect(statefulStore).toMatchInlineSnapshot(`
-        [root]
-             <Child>
-             <Child> ⚠
-             <Child>
-             <Child> ✕
-             <Child>
-      `);
+      expect({state, store}).toMatchInlineSnapshot();
 
       selectNextErrorOrWarning();
-      statefulStore = {state, store};
+      let statefulStore = {state, store};
       expect(statefulStore).toMatchInlineSnapshot(`
         [root]
              <Child>
