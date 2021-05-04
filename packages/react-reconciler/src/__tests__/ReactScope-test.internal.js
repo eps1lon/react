@@ -332,6 +332,175 @@ describe('ReactScope', () => {
       // We should now have hydrated with a ref on the existing span.
       expect(ref.current).toBe(span);
     });
+
+    // @gate experimental
+    describe('Material-UI', () => {
+      it('can implement [role="listbox"]', () => {
+        const ListboxScope = React.unstable_Scope;
+        const ListboxContext = React.createContext(null);
+        const OptionContext = React.createContext(null);
+
+        function findInitialOption(selectedValue, options) {
+          return (
+            options.find(option => option.value === selectedValue) || options[0]
+          );
+        }
+
+        function Listbox({children, onChange, value}) {
+          const scopeRef = React.useRef(null);
+          const queryOptions = () =>
+            scopeRef.current.getChildContextValues(OptionContext);
+
+          const [focused, setFocused] = React.useState(false);
+          const [activeDescendant, setActiveDescendant] = React.useState(null);
+          function handleFocus(event) {
+            const options = queryOptions();
+
+            if (options.length > 0) {
+              if (activeDescendant === null) {
+                setActiveDescendant(findInitialOption(value, options).id);
+              } else if (
+                options.find(option => option.id === activeDescendant) ===
+                undefined
+              ) {
+                setActiveDescendant(findInitialOption(value, options).id);
+              }
+            }
+            setFocused(true);
+          }
+
+          function handleBlur() {
+            setFocused(false);
+          }
+
+          function handleKeyDown(event) {
+            const options = queryOptions();
+            const activeIndex = options.findIndex(
+              option => option.id === activeDescendant,
+            );
+
+            let nextActiveIndex = null;
+            switch (event.key) {
+              case 'ArrowDown':
+                nextActiveIndex = (activeIndex + 1) % options.length;
+                break;
+            }
+            if (nextActiveIndex !== null) {
+              event.preventDefault();
+              setActiveDescendant(options[nextActiveIndex].id);
+              onChange(options[nextActiveIndex].value);
+            }
+          }
+
+          return (
+            <ListboxScope ref={scopeRef}>
+              <ListboxContext.Provider value={{value}}>
+                <ul
+                  // the list of descendants is only checked on focus
+                  // in the meantime the descendant might be removed
+                  aria-activedescendant={focused ? activeDescendant : undefined}
+                  onBlur={handleBlur}
+                  onFocus={handleFocus}
+                  onKeyDown={handleKeyDown}
+                  role="listbox"
+                  tabIndex={0}>
+                  {children}
+                </ul>
+              </ListboxContext.Provider>
+            </ListboxScope>
+          );
+        }
+
+        function Option({id: idProp, value, ...other}) {
+          const reactId = React.useId();
+          const id = idProp == null ? reactId : idProp;
+
+          const {value: selectedValue} = React.useContext(ListboxContext);
+
+          const selected = value === selectedValue;
+
+          return (
+            <OptionContext.Provider value={{id, value}}>
+              <li aria-selected={selected} id={id} role="option" {...other} />
+            </OptionContext.Provider>
+          );
+        }
+
+        function MyListbox() {
+          const [value, setValue] = React.useState(3);
+
+          return (
+            <Listbox onChange={setValue} value={value}>
+              <div role="group">
+                <Option value={1}>one</Option>
+                <Option value={2}>two</Option>
+              </div>
+              <Option value={3}>three</Option>
+              <hr />
+              <Option value={4}>four</Option>
+              {ReactDOM.createPortal(
+                <Option value={5}>five</Option>,
+                document.body,
+              )}
+            </Listbox>
+          );
+        }
+
+        ReactDOM.render(<MyListbox />, container);
+
+        const listbox = document.querySelector('[role="listbox"]');
+        const options = document.querySelectorAll('[role="option"]');
+        listbox.focus();
+
+        expect(options[2].getAttribute('aria-selected')).toEqual('true');
+        expect(listbox.getAttribute('aria-activedescendant')).toEqual(
+          options[2].id,
+        );
+
+        listbox.dispatchEvent(
+          new KeyboardEvent('keydown', {
+            bubbles: true,
+            cancelable: true,
+            key: 'ArrowDown',
+          }),
+        );
+
+        expect(options[3].getAttribute('aria-selected')).toEqual('true');
+        expect(listbox.getAttribute('aria-activedescendant')).toEqual(
+          options[3].id,
+        );
+
+        listbox.dispatchEvent(
+          new KeyboardEvent('keydown', {
+            bubbles: true,
+            cancelable: true,
+            key: 'ArrowDown',
+          }),
+        );
+
+        expect(options[4].getAttribute('aria-selected')).toEqual('true');
+        expect(listbox.getAttribute('aria-activedescendant')).toEqual(
+          options[4].id,
+        );
+
+        listbox.dispatchEvent(
+          new KeyboardEvent('keydown', {
+            bubbles: true,
+            cancelable: true,
+            key: 'ArrowDown',
+          }),
+        );
+
+        expect(options[0].getAttribute('aria-selected')).toEqual('true');
+        expect(listbox.getAttribute('aria-activedescendant')).toEqual(
+          options[0].id,
+        );
+
+        listbox.blur();
+        // active descendant might be removed so better not display anything than a stale value
+        expect(listbox.hasAttribute('aria-activedescendant')).toEqual(false);
+      });
+    });
   });
 
   describe('ReactTestRenderer', () => {
