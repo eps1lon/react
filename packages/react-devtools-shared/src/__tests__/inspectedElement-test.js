@@ -1886,6 +1886,10 @@ describe('InspectedElement', () => {
             "preview_short": ƒ () {},
             "preview_long": ƒ () {},
           },
+          "Symbol(Symbol.toStringTag)": Dehydrated {
+            "preview_short": ƒ () {},
+            "preview_long": ƒ () {},
+          },
           "constructor": Dehydrated {
             "preview_short": ƒ () {},
             "preview_long": ƒ () {},
