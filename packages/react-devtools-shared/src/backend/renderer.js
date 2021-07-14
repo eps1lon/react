@@ -2994,6 +2994,7 @@ export function attach(
       memoizedProps,
       memoizedState,
       dependencies,
+      ref,
       tag,
       type,
     } = fiber;
@@ -3187,6 +3188,8 @@ export function attach(
       hasLegacyContext,
 
       key: key != null ? key : null,
+
+      ref,
 
       displayName: getDisplayNameForFiber(fiber),
       type: elementType,
@@ -3454,6 +3457,10 @@ export function attach(
     cleanedInspectedElement.state = cleanForBridge(
       cleanedInspectedElement.state,
       createIsPathAllowed('state', null),
+    );
+    cleanedInspectedElement.ref = cleanForBridge(
+      cleanedInspectedElement.ref,
+      createIsPathAllowed('ref', null),
     );
 
     return {
