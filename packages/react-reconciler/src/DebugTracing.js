@@ -49,6 +49,7 @@ function log(...logArgs): void {
     for (let i = printedGroupIndex + 1; i < pendingGroupArgs.length; i++) {
       const groupArgs = pendingGroupArgs[i];
       nativeConsole.group(...groupArgs);
+      // nativeConsoleLog(new Error().stack)
     }
     printedGroupIndex = pendingGroupArgs.length - 1;
   }

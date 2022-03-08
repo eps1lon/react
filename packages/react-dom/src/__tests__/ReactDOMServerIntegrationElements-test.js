@@ -5,6 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  *
  * @emails react-core
+ * @jest-environment ./scripts/jest/ReactDOMServerIntegrationEnvironment
  */
 
 'use strict';
@@ -43,7 +44,7 @@ const {
   clientRenderOnServerString,
 } = ReactDOMServerIntegrationUtils(initModules);
 
-describe('ReactDOMServerIntegration', () => {
+describe('ReactDOMServerIntegrationElements', () => {
   beforeEach(() => {
     resetModules();
   });
