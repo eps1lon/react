@@ -37,7 +37,6 @@ describe('useId', () => {
     useState = React.useState;
 
     container = document.createElement('div');
-    container.setAttribute('id', 'container');
     document.body.appendChild(container);
 
     buffer = '';
