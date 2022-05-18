@@ -41,6 +41,14 @@ describe('ReactDOMFiber', () => {
     expect(container.textContent).toEqual('10');
   });
 
+  it('should render bigints as children', () => {
+    const Box = ({value}) => <div>{value}</div>;
+
+    ReactDOM.render(<Box value={10n} />, container);
+
+    expect(container.textContent).toEqual('10');
+  });
+
   it('should be called a callback argument', () => {
     // mounting phase
     let called = false;

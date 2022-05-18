@@ -181,11 +181,12 @@ describe('ReactChildren', () => {
         {false}
         {null}
         {undefined}
+        {9n}
       </div>
     );
 
     function assertCalls() {
-      expect(callback).toHaveBeenCalledTimes(9);
+      expect(callback).toHaveBeenCalledTimes(10);
       expect(callback).toHaveBeenCalledWith(div, 0);
       expect(callback).toHaveBeenCalledWith(span, 1);
       expect(callback).toHaveBeenCalledWith(a, 2);
@@ -195,6 +196,7 @@ describe('ReactChildren', () => {
       expect(callback).toHaveBeenCalledWith(null, 6);
       expect(callback).toHaveBeenCalledWith(null, 7);
       expect(callback).toHaveBeenCalledWith(null, 8);
+      expect(callback).toHaveBeenCalledWith(9n, 9);
       callback.mockClear();
     }
 
@@ -213,6 +215,7 @@ describe('ReactChildren', () => {
       <a key=".2:$aNode" />,
       'string',
       1234,
+      9n
     ]);
   });
 

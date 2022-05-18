@@ -2789,6 +2789,17 @@ describe('ReactDOMFizzServer', () => {
     );
   });
 
+  // @gate experimental
+  it('Supports bigint', async () => {
+    await act(async () => {
+      const {pipe} = ReactDOMFizzServer.renderToPipeableStream(
+        <div>{10n}</div>,
+      );
+      pipe(writable);
+    });
+    expect(getVisibleChildren(container)).toEqual(<div>10</div>);
+  });
+
   describe('bootstrapScriptContent escaping', () => {
     // @gate experimental
     it('the "S" in "</?[Ss]cript" strings are replaced with unicode escaped lowercase s or S depending on case, preserving case sensitivity of nearby characters', async () => {

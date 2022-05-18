@@ -598,4 +598,15 @@ describe('ReactDOMServerHydration', () => {
     expect(customElement.str).toBe(undefined);
     expect(customElement.obj).toBe(undefined);
   });
+
+  it('should not warn when hydrating bigint', () => {
+    const domElement = document.createElement('div');
+    const reactElement = <div>{1n}</div>;
+    const markup = ReactDOMServer.renderToStaticMarkup(reactElement);
+    domElement.innerHTML = markup;
+
+    ReactDOM.hydrate(reactElement, domElement);
+
+    expect(domElement.innerHTML).toEqual(markup);
+  });
 });

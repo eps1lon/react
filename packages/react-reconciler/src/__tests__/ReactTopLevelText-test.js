@@ -37,4 +37,11 @@ describe('ReactTopLevelText', () => {
     expect(Scheduler).toFlushWithoutYielding();
     expect(ReactNoop).toMatchRenderedOutput('10');
   });
+
+  it('should render a component returning bigints directly from render', () => {
+    const Text = ({value}) => value;
+    ReactNoop.render(<Text value={10n} />);
+    expect(Scheduler).toFlushWithoutYielding();
+    expect(ReactNoop).toMatchRenderedOutput('10');
+  });
 });
