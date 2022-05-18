@@ -96,6 +96,7 @@ function mapIntoArray(
     switch (type) {
       case 'string':
       case 'number':
+      case 'bigint':
         invokeCallback = true;
         break;
       case 'object':

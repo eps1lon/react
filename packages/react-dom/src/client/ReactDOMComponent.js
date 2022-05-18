@@ -317,7 +317,7 @@ function setInitialDOMProperties(
         if (canSetTextContent) {
           setTextContent(domElement, nextProp);
         }
-      } else if (typeof nextProp === 'number') {
+      } else if (typeof nextProp === 'number' || typeof nextProp === 'bigint') {
         setTextContent(domElement, '' + nextProp);
       }
     } else if (

@@ -642,6 +642,7 @@ export function resolveModelToJSON(
   if (
     typeof value === 'boolean' ||
     typeof value === 'number' ||
+    typeof value === 'bigint' ||
     typeof value === 'undefined'
   ) {
     return value;

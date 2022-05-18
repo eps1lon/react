@@ -254,7 +254,8 @@ export function createInstance(
     validateDOMNesting(type, null, hostContextDev.ancestorInfo);
     if (
       typeof props.children === 'string' ||
-      typeof props.children === 'number'
+      typeof props.children === 'number' ||
+      typeof props.children === 'bigint'
     ) {
       const string = '' + props.children;
       const ownAncestorInfo = updatedAncestorInfo(

@@ -294,7 +294,11 @@ function getNonChildrenInnerMarkup(props) {
     }
   } else {
     const content = props.children;
-    if (typeof content === 'string' || typeof content === 'number') {
+    if (
+      typeof content === 'string' ||
+      typeof content === 'number' ||
+      typeof content === 'bigint'
+    ) {
       return escapeTextForBrowser(content);
     }
   }

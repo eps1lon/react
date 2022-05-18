@@ -1220,7 +1220,7 @@ function renderNodeDestructive(
     return;
   }
 
-  if (typeof node === 'number') {
+  if (typeof node === 'number' || typeof node === 'bigint') {
     pushTextInstance(
       task.blockedSegment.chunks,
       '' + node,

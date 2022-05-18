@@ -490,7 +490,8 @@ function ChildReconciler(shouldTrackSideEffects) {
   ): Fiber | null {
     if (
       (typeof newChild === 'string' && newChild !== '') ||
-      typeof newChild === 'number'
+      typeof newChild === 'number' ||
+      typeof newChild === 'bigint'
     ) {
       // Text nodes don't have keys. If the previous node is implicitly keyed
       // we can continue to replace it without aborting even if it is not a text
@@ -567,7 +568,8 @@ function ChildReconciler(shouldTrackSideEffects) {
 
     if (
       (typeof newChild === 'string' && newChild !== '') ||
-      typeof newChild === 'number'
+      typeof newChild === 'number' ||
+      typeof newChild === 'bigint'
     ) {
       // Text nodes don't have keys. If the previous node is implicitly keyed
       // we can continue to replace it without aborting even if it is not a text
@@ -630,7 +632,8 @@ function ChildReconciler(shouldTrackSideEffects) {
   ): Fiber | null {
     if (
       (typeof newChild === 'string' && newChild !== '') ||
-      typeof newChild === 'number'
+      typeof newChild === 'number' ||
+      typeof newChild === 'bigint'
     ) {
       // Text nodes don't have keys, so we neither have to check the old nor
       // new node for the key. If both are text nodes, they match.
@@ -1321,7 +1324,8 @@ function ChildReconciler(shouldTrackSideEffects) {
 
     if (
       (typeof newChild === 'string' && newChild !== '') ||
-      typeof newChild === 'number'
+      typeof newChild === 'number' ||
+      typeof newChild === 'bigint'
     ) {
       return placeSingleChild(
         reconcileSingleTextNode(
