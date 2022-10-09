@@ -44,40 +44,38 @@ describe('memo', () => {
     return {default: result};
   }
 
-  it('warns when giving a ref (simple)', async () => {
+  it('does not warn when giving a ref (simple)', async () => {
     // This test lives outside sharedTests because the wrappers don't forward
     // refs properly, and they end up affecting the current owner which is used
     // by the warning (making the messages not line up).
-    function App() {
-      return null;
+    function App(props) {
+      return <div ref={props.ref} />;
     }
     App = React.memo(App);
+    const ref = React.createRef();
     function Outer() {
-      return <App ref={() => {}} />;
+      return <App ref={ref} />;
     }
     ReactNoop.render(<Outer />);
-    expect(() => expect(Scheduler).toFlushWithoutYielding()).toErrorDev([
-      'Warning: Function components cannot be given refs. Attempts to access ' +
-        'this ref will fail.',
-    ]);
+    expect(Scheduler).toFlushWithoutYielding();
+    expect(ref.current).toMatchObject({type: 'div'});
   });
 
-  it('warns when giving a ref (complex)', async () => {
+  it('does not warn when giving a ref (complex)', async () => {
     // defaultProps means this won't use SimpleMemoComponent (as of this writing)
     // SimpleMemoComponent is unobservable tho, so we can't check :)
-    function App() {
-      return null;
+    function App(props) {
+      return <div ref={props.ref} />;
     }
     App.defaultProps = {};
     App = React.memo(App);
+    const ref = React.createRef();
     function Outer() {
-      return <App ref={() => {}} />;
+      return <App ref={ref} />;
     }
     ReactNoop.render(<Outer />);
-    expect(() => expect(Scheduler).toFlushWithoutYielding()).toErrorDev([
-      'Warning: Function components cannot be given refs. Attempts to access ' +
-        'this ref will fail.',
-    ]);
+    expect(Scheduler).toFlushWithoutYielding();
+    expect(ref.current).toMatchObject({type: 'div'});
   });
 
   // Tests should run against both the lazy and non-lazy versions of `memo`.

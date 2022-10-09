@@ -15,7 +15,7 @@ let ReactDOM;
 let ReactTestUtils;
 
 function FunctionComponent(props) {
-  return <div>{props.name}</div>;
+  return <div ref={props.ref}>{props.name}</div>;
 }
 
 describe('ReactFunctionComponent', () => {
@@ -184,14 +184,15 @@ describe('ReactFunctionComponent', () => {
       return <div>{props.children}</div>;
     }
 
+    let instance;
     class ParentUsingFunctionRef extends React.Component {
       render() {
         return (
           <Indirection>
             <FunctionComponent
               name="A"
-              ref={arg => {
-                expect(arg).toBe(null);
+              ref={current => {
+                instance = current;
               }}
             />
           </Indirection>
@@ -199,91 +200,13 @@ describe('ReactFunctionComponent', () => {
       }
     }
 
-    expect(() =>
-      ReactTestUtils.renderIntoDocument(<ParentUsingFunctionRef />),
-    ).toErrorDev(
-      'Warning: Function components cannot be given refs. ' +
-        'Attempts to access this ref will fail. ' +
-        'Did you mean to use React.forwardRef()?\n\n' +
-        'Check the render method ' +
-        'of `ParentUsingFunctionRef`.\n' +
-        '    in FunctionComponent (at **)\n' +
-        '    in div (at **)\n' +
-        '    in Indirection (at **)\n' +
-        '    in ParentUsingFunctionRef (at **)',
-    );
-
-    // No additional warnings should be logged
     ReactTestUtils.renderIntoDocument(<ParentUsingFunctionRef />);
-  });
-
-  it('deduplicates ref warnings based on element or owner', () => {
-    // When owner uses JSX, we can use exact line location to dedupe warnings
-    class AnonymousParentUsingJSX extends React.Component {
-      render() {
-        return <FunctionComponent name="A" ref={() => {}} />;
-      }
-    }
-    Object.defineProperty(AnonymousParentUsingJSX, 'name', {value: undefined});
-
-    let instance1;
-
-    expect(() => {
-      instance1 = ReactTestUtils.renderIntoDocument(
-        <AnonymousParentUsingJSX />,
-      );
-    }).toErrorDev('Warning: Function components cannot be given refs.');
-    // Should be deduped (offending element is on the same line):
-    instance1.forceUpdate();
-    // Should also be deduped (offending element is on the same line):
-    ReactTestUtils.renderIntoDocument(<AnonymousParentUsingJSX />);
-
-    // When owner doesn't use JSX, and is anonymous, we warn once per internal instance.
-    class AnonymousParentNotUsingJSX extends React.Component {
-      render() {
-        return React.createElement(FunctionComponent, {
-          name: 'A',
-          ref: () => {},
-        });
-      }
-    }
-    Object.defineProperty(AnonymousParentNotUsingJSX, 'name', {
-      value: undefined,
-    });
-
-    let instance2;
-    expect(() => {
-      instance2 = ReactTestUtils.renderIntoDocument(
-        <AnonymousParentNotUsingJSX />,
-      );
-    }).toErrorDev('Warning: Function components cannot be given refs.');
-    // Should be deduped (same internal instance, no additional warnings)
-    instance2.forceUpdate();
-    // Could not be differentiated (since owner is anonymous and no source location)
-    ReactTestUtils.renderIntoDocument(<AnonymousParentNotUsingJSX />);
-
-    // When owner doesn't use JSX, but is named, we warn once per owner name
-    class NamedParentNotUsingJSX extends React.Component {
-      render() {
-        return React.createElement(FunctionComponent, {
-          name: 'A',
-          ref: () => {},
-        });
-      }
-    }
-    let instance3;
-    expect(() => {
-      instance3 = ReactTestUtils.renderIntoDocument(<NamedParentNotUsingJSX />);
-    }).toErrorDev('Warning: Function components cannot be given refs.');
-    // Should be deduped (same owner name, no additional warnings):
-    instance3.forceUpdate();
-    // Should also be deduped (same owner name, no additional warnings):
-    ReactTestUtils.renderIntoDocument(<NamedParentNotUsingJSX />);
+    expect(instance).toBeInstanceOf(HTMLElement);
   });
 
   // This guards against a regression caused by clearing the current debug fiber.
   // https://github.com/facebook/react/issues/10831
-  it('should warn when giving a function ref with context', () => {
+  it('should not warn when giving a function ref with context', () => {
     function Child() {
       return null;
     }
@@ -305,15 +228,7 @@ describe('ReactFunctionComponent', () => {
       }
     }
 
-    expect(() => ReactTestUtils.renderIntoDocument(<Parent />)).toErrorDev(
-      'Warning: Function components cannot be given refs. ' +
-        'Attempts to access this ref will fail. ' +
-        'Did you mean to use React.forwardRef()?\n\n' +
-        'Check the render method ' +
-        'of `Parent`.\n' +
-        '    in Child (at **)\n' +
-        '    in Parent (at **)',
-    );
+    ReactTestUtils.renderIntoDocument(<Parent />);
   });
 
   it('should provide a null ref', () => {

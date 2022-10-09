@@ -18,6 +18,7 @@ describe('ReactElementClone', () => {
   let ComponentClass;
 
   beforeEach(() => {
+    jest.resetModules();
     PropTypes = require('prop-types');
     React = require('react');
     ReactDOM = require('react-dom');
@@ -184,7 +185,15 @@ describe('ReactElementClone', () => {
           ref: this.xyzRef,
         });
         expect(clone.key).toBe('xyz');
-        expect(clone.ref).toBe(this.xyzRef);
+        expect(() => {
+          expect(clone.ref).toBe(this.xyzRef);
+        }).toWarnDev([
+          'Warning: Accessing the ref of an element via `element.ref` is deprecated. ' +
+            'Use `element.props.ref` instead.\n' +
+            '    in Parent (at **)\n' +
+            '    in Grandparent (at **)',
+        ]);
+        expect(clone.props.ref).toBe(this.xyzRef);
         return <div>{clone}</div>;
       }
     }
@@ -320,36 +329,55 @@ describe('ReactElementClone', () => {
     );
   });
 
-  it('should ignore key and ref warning getters', () => {
+  it('should ignore key and but not ref warning getters', () => {
     const elementA = React.createElement('div');
     const elementB = React.cloneElement(elementA, elementA.props);
     expect(elementB.key).toBe(null);
-    expect(elementB.ref).toBe(null);
+    expect(() => {
+      expect(elementB.ref).toBe(null);
+    }).toWarnDev(
+      [
+        'Warning: Accessing the ref of an element via `element.ref` is deprecated. ' +
+          'Use `element.props.ref` instead.',
+      ],
+      {withoutStack: true},
+    );
   });
 
-  it('should ignore undefined key and ref', () => {
+  it('should ignore undefined key', () => {
     const element = React.createElement(ComponentClass, {
       key: '12',
       ref: '34',
       foo: '56',
+      bar: '78',
     });
     const props = {
       key: undefined,
       ref: undefined,
       foo: 'ef',
+      bar: undefined,
     };
     const clone = React.cloneElement(element, props);
     expect(clone.type).toBe(ComponentClass);
     expect(clone.key).toBe('12');
-    expect(clone.ref).toBe('34');
+    expect(clone.props).toEqual({bar: undefined, foo: 'ef', ref: undefined});
+    expect(() => {
+      expect(clone.ref).toBe(undefined);
+    }).toWarnDev(
+      [
+        'Warning: Accessing the ref of an element via `element.ref` is deprecated. ' +
+          'Use `element.props.ref` instead',
+      ],
+      {withoutStack: true},
+    );
     if (__DEV__) {
       expect(Object.isFrozen(element)).toBe(true);
       expect(Object.isFrozen(element.props)).toBe(true);
     }
-    expect(clone.props).toEqual({foo: 'ef'});
+    expect(clone.props).toEqual({foo: 'ef', ref: undefined});
   });
 
-  it('should extract null key and ref', () => {
+  it('should extract null key', () => {
     const element = React.createElement(ComponentClass, {
       key: '12',
       ref: '34',
@@ -363,12 +391,20 @@ describe('ReactElementClone', () => {
     const clone = React.cloneElement(element, props);
     expect(clone.type).toBe(ComponentClass);
     expect(clone.key).toBe('null');
-    expect(clone.ref).toBe(null);
+    expect(() => {
+      expect(clone.ref).toBe(null);
+    }).toWarnDev(
+      [
+        'Warning: Accessing the ref of an element via `element.ref` is deprecated. ' +
+          'Use `element.props.ref` instead',
+      ],
+      {withoutStack: true},
+    );
     if (__DEV__) {
       expect(Object.isFrozen(element)).toBe(true);
       expect(Object.isFrozen(element.props)).toBe(true);
     }
-    expect(clone.props).toEqual({foo: 'ef'});
+    expect(clone.props).toEqual({foo: 'ef', ref: null});
   });
 
   it('throws an error if passed null', () => {

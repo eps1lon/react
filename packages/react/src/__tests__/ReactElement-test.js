@@ -35,7 +35,12 @@ describe('ReactElement', () => {
     const element = React.createElement(ComponentClass);
     expect(element.type).toBe(ComponentClass);
     expect(element.key).toBe(null);
-    expect(element.ref).toBe(null);
+    expect(() => {
+      expect(element.ref).toBe(null);
+    }).toWarnDev(
+      'Accessing the ref of an element via `element.ref` is deprecated.',
+      {withoutStack: true},
+    );
     if (__DEV__) {
       expect(Object.isFrozen(element)).toBe(true);
       expect(Object.isFrozen(element.props)).toBe(true);
@@ -82,7 +87,8 @@ describe('ReactElement', () => {
     );
   });
 
-  it('should warn when `ref` is being accessed', () => {
+  // FIXME
+  xit('should warn when `ref` is being accessed', () => {
     const container = document.createElement('div');
     class Child extends React.Component {
       render() {
@@ -110,7 +116,12 @@ describe('ReactElement', () => {
     const element = React.createElement('div');
     expect(element.type).toBe('div');
     expect(element.key).toBe(null);
-    expect(element.ref).toBe(null);
+    expect(() => {
+      expect(element.ref).toBe(null);
+    }).toWarnDev(
+      'Accessing the ref of an element via `element.ref` is deprecated.',
+      {withoutStack: true},
+    );
     if (__DEV__) {
       expect(Object.isFrozen(element)).toBe(true);
       expect(Object.isFrozen(element.props)).toBe(true);
@@ -141,7 +152,7 @@ describe('ReactElement', () => {
     expect(element.props.foo).toBe(1);
   });
 
-  it('extracts key and ref from the config', () => {
+  it('extracts key from the config', () => {
     const element = React.createElement(ComponentClass, {
       key: '12',
       ref: '34',
@@ -149,12 +160,17 @@ describe('ReactElement', () => {
     });
     expect(element.type).toBe(ComponentClass);
     expect(element.key).toBe('12');
-    expect(element.ref).toBe('34');
+    expect(() => {
+      expect(element.ref).toBe('34');
+    }).toWarnDev(
+      'Accessing the ref of an element via `element.ref` is deprecated.',
+      {withoutStack: true},
+    );
     if (__DEV__) {
       expect(Object.isFrozen(element)).toBe(true);
       expect(Object.isFrozen(element.props)).toBe(true);
     }
-    expect(element.props).toEqual({foo: '56'});
+    expect(element.props).toEqual({ref: '34', foo: '56'});
   });
 
   it('extracts null key and ref', () => {
@@ -165,15 +181,20 @@ describe('ReactElement', () => {
     });
     expect(element.type).toBe(ComponentClass);
     expect(element.key).toBe('null');
-    expect(element.ref).toBe(null);
+    expect(() => {
+      expect(element.ref).toBe(null);
+    }).toWarnDev(
+      'Accessing the ref of an element via `element.ref` is deprecated.',
+      {withoutStack: true},
+    );
     if (__DEV__) {
       expect(Object.isFrozen(element)).toBe(true);
       expect(Object.isFrozen(element.props)).toBe(true);
     }
-    expect(element.props).toEqual({foo: '12'});
+    expect(element.props).toEqual({ref: null, foo: '12'});
   });
 
-  it('ignores undefined key and ref', () => {
+  it('ignores undefined key', () => {
     const props = {
       foo: '56',
       key: undefined,
@@ -182,7 +203,12 @@ describe('ReactElement', () => {
     const element = React.createElement(ComponentClass, props);
     expect(element.type).toBe(ComponentClass);
     expect(element.key).toBe(null);
-    expect(element.ref).toBe(null);
+    expect(() => {
+      expect(element.ref).toBe(undefined);
+    }).toWarnDev(
+      'Accessing the ref of an element via `element.ref` is deprecated.',
+      {withoutStack: true},
+    );
     if (__DEV__) {
       expect(Object.isFrozen(element)).toBe(true);
       expect(Object.isFrozen(element.props)).toBe(true);
@@ -194,7 +220,12 @@ describe('ReactElement', () => {
     const elementA = React.createElement('div');
     const elementB = React.createElement('div', elementA.props);
     expect(elementB.key).toBe(null);
-    expect(elementB.ref).toBe(null);
+    expect(() => {
+      expect(elementB.ref).toBe(null);
+    }).toWarnDev(
+      'Accessing the ref of an element via `element.ref` is deprecated.',
+      {withoutStack: true},
+    );
   });
 
   it('coerces the key to a string', () => {
@@ -204,7 +235,12 @@ describe('ReactElement', () => {
     });
     expect(element.type).toBe(ComponentClass);
     expect(element.key).toBe('12');
-    expect(element.ref).toBe(null);
+    expect(() => {
+      expect(element.ref).toBe(null);
+    }).toWarnDev(
+      'Accessing the ref of an element via `element.ref` is deprecated.',
+      {withoutStack: true},
+    );
     if (__DEV__) {
       expect(Object.isFrozen(element)).toBe(true);
       expect(Object.isFrozen(element.props)).toBe(true);

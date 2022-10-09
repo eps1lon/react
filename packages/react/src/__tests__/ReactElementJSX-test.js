@@ -211,11 +211,11 @@ describe('ReactElement.jsx', () => {
     );
   });
 
-  it('should warn when `ref` is being accessed', () => {
+  it('should not warn when `ref` is being accessed', () => {
     const container = document.createElement('div');
     class Child extends React.Component {
       render() {
-        return JSXRuntime.jsx('div', {children: this.props.ref});
+        return JSXRuntime.jsx('div', {ref: this.props.ref});
       }
     }
     class Parent extends React.Component {
@@ -225,14 +225,7 @@ describe('ReactElement.jsx', () => {
         });
       }
     }
-    expect(() =>
-      ReactDOM.render(JSXRuntime.jsx(Parent, {}), container),
-    ).toErrorDev(
-      'Child: `ref` is not a prop. Trying to access it will result ' +
-        'in `undefined` being returned. If you need to access the same ' +
-        'value within the child component, you should pass it as a different ' +
-        'prop. (https://reactjs.org/link/special-props)',
-    );
+    ReactDOM.render(JSXRuntime.jsx(Parent, {}), container);
   });
 
   it('should warn when unkeyed children are passed to jsx', () => {

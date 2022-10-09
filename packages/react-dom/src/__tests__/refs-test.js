@@ -205,18 +205,14 @@ describe('ref swapping', () => {
       key: null,
       ref: null,
     });
-    // But this doesn't
-    expect(() => {
-      ReactTestUtils.renderIntoDocument({
-        $$typeof: Symbol.for('react.element'),
-        type: 'div',
-        props: {},
-        key: null,
-        ref: undefined,
-      });
-    }).toThrow(
-      'Expected ref to be a function, an object returned by React.createRef(), or null.',
-    );
+    // This also because `element.ref` is not the source of truth
+    ReactTestUtils.renderIntoDocument({
+      $$typeof: Symbol.for('react.element'),
+      type: 'div',
+      props: {},
+      key: null,
+      ref: undefined,
+    });
   });
 
   it('should warn about callback refs returning a function', () => {

@@ -1164,7 +1164,8 @@ describe('ReactLazy', () => {
     expect(root).toMatchRenderedOutput('2');
   });
 
-  it('warns about ref on functions for lazy-loaded components', async () => {
+  // TODO: Do we have any warnings for excess props on Lazy components? Check how other built-ins handle excess props.
+  it.skip('warns about ref on functions for lazy-loaded components', async () => {
     const LazyFoo = lazy(() => {
       const Foo = props => <div />;
       return fakeImport(Foo);

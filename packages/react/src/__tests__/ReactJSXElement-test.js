@@ -33,7 +33,12 @@ describe('ReactJSXElement', () => {
     const element = <Component />;
     expect(element.type).toBe(Component);
     expect(element.key).toBe(null);
-    expect(element.ref).toBe(null);
+    expect(() => {
+      expect(element.ref).toBe(null);
+    }).toWarnDev(
+      'Accessing the ref of an element via `element.ref` is deprecated.',
+      {withoutStack: true},
+    );
     const expectation = {};
     Object.freeze(expectation);
     expect(element.props).toEqual(expectation);
@@ -43,7 +48,12 @@ describe('ReactJSXElement', () => {
     const element = <div />;
     expect(element.type).toBe('div');
     expect(element.key).toBe(null);
-    expect(element.ref).toBe(null);
+    expect(() => {
+      expect(element.ref).toBe(null);
+    }).toWarnDev(
+      'Accessing the ref of an element via `element.ref` is deprecated.',
+      {withoutStack: true},
+    );
     const expectation = {};
     Object.freeze(expectation);
     expect(element.props).toEqual(expectation);
@@ -54,7 +64,12 @@ describe('ReactJSXElement', () => {
     const element = <TagName />;
     expect(element.type).toBe('div');
     expect(element.key).toBe(null);
-    expect(element.ref).toBe(null);
+    expect(() => {
+      expect(element.ref).toBe(null);
+    }).toWarnDev(
+      'Accessing the ref of an element via `element.ref` is deprecated.',
+      {withoutStack: true},
+    );
     const expectation = {};
     Object.freeze(expectation);
     expect(element.props).toEqual(expectation);
@@ -77,13 +92,12 @@ describe('ReactJSXElement', () => {
     expect(element.props.foo).toBe(1);
   });
 
-  it('extracts key and ref from the rest of the props', () => {
+  it('extracts key from the rest of the props', () => {
     const ref = React.createRef();
     const element = <Component key="12" ref={ref} foo="56" />;
     expect(element.type).toBe(Component);
     expect(element.key).toBe('12');
-    expect(element.ref).toBe(ref);
-    const expectation = {foo: '56'};
+    const expectation = {foo: '56', ref};
     Object.freeze(expectation);
     expect(element.props).toEqual(expectation);
   });
@@ -92,7 +106,12 @@ describe('ReactJSXElement', () => {
     const element = <Component key={12} foo="56" />;
     expect(element.type).toBe(Component);
     expect(element.key).toBe('12');
-    expect(element.ref).toBe(null);
+    expect(() => {
+      expect(element.ref).toBe(null);
+    }).toWarnDev(
+      'Accessing the ref of an element via `element.ref` is deprecated.',
+      {withoutStack: true},
+    );
     const expectation = {foo: '56'};
     Object.freeze(expectation);
     expect(element.props).toEqual(expectation);

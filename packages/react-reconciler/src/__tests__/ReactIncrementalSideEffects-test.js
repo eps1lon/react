@@ -1242,16 +1242,7 @@ describe('ReactIncrementalSideEffects', () => {
     }
 
     ReactNoop.render(<Foo show={true} />);
-    expect(() => expect(Scheduler).toFlushWithoutYielding()).toErrorDev(
-      'Warning: Function components cannot be given refs. ' +
-        'Attempts to access this ref will fail. ' +
-        'Did you mean to use React.forwardRef()?\n\n' +
-        'Check the render method ' +
-        'of `Foo`.\n' +
-        '    in FunctionComponent (at **)\n' +
-        '    in div (at **)\n' +
-        '    in Foo (at **)',
-    );
+    expect(Scheduler).toFlushWithoutYielding();
     expect(ops).toEqual([
       classInstance,
       // no call for function components

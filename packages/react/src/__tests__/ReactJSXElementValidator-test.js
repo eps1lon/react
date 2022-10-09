@@ -391,7 +391,7 @@ describe('ReactJSXElementValidator', () => {
     }
 
     expect(() => ReactTestUtils.renderIntoDocument(<Foo />)).toErrorDev(
-      'Invalid attribute `ref` supplied to `React.Fragment`.',
+      'Invalid prop `ref` supplied to `React.Fragment`.',
     );
   });
 

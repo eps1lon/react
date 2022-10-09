@@ -88,9 +88,9 @@ describe('ReactDOMServerIntegration', () => {
       }
     }
 
-    const OuterComponent = React.forwardRef((props, ref) => (
-      <InnerComponent {...props} forwardedRef={ref} />
-    ));
+    const OuterComponent = React.forwardRef((props, ref) => {
+      return <InnerComponent {...props} forwardedRef={ref} />;
+    });
 
     await clientRenderOnServerString(
       <OuterComponent ref={divRef} value="hello" />,

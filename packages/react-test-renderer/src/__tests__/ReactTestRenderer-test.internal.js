@@ -266,7 +266,7 @@ describe('ReactTestRenderer', () => {
     expect(log).toEqual([null]);
   });
 
-  it('warns correctly for refs on SFCs', () => {
+  it('does not warn for refs on function components', () => {
     function Bar() {
       return <div>Hello, world</div>;
     }
@@ -283,14 +283,7 @@ describe('ReactTestRenderer', () => {
       }
     }
     ReactTestRenderer.create(<Baz />);
-    expect(() => ReactTestRenderer.create(<Foo />)).toErrorDev(
-      'Warning: Function components cannot be given refs. Attempts ' +
-        'to access this ref will fail. ' +
-        'Did you mean to use React.forwardRef()?\n\n' +
-        'Check the render method of `Foo`.\n' +
-        '    in Bar (at **)\n' +
-        '    in Foo (at **)',
-    );
+    ReactTestRenderer.create(<Foo />);
   });
 
   it('allows an optional createNodeMock function', () => {
@@ -990,29 +983,27 @@ describe('ReactTestRenderer', () => {
     const tree = renderer.toTree();
     cleanNodeOrArray(tree);
 
-    expect(prettyFormat(tree)).toEqual(
-      prettyFormat({
+    expect(tree).toEqual({
+      instance: null,
+      nodeType: 'component',
+      props: {},
+      rendered: {
         instance: null,
-        nodeType: 'component',
+        nodeType: 'host',
         props: {},
-        rendered: {
-          instance: null,
-          nodeType: 'host',
-          props: {},
-          rendered: [
-            {
-              instance: null,
-              nodeType: 'host',
-              props: {},
-              rendered: [],
-              type: 'span',
-            },
-          ],
-          type: 'div',
-        },
-        type: App,
-      }),
-    );
+        rendered: [
+          {
+            instance: null,
+            nodeType: 'host',
+            props: {ref: expect.any(Function)},
+            rendered: [],
+            type: 'span',
+          },
+        ],
+        type: 'div',
+      },
+      type: App,
+    });
   });
 
   it('can concurrently render context with a "primary" renderer', () => {
