@@ -567,6 +567,7 @@ function pushAttribute(
     case 'defaultValue':
     case 'defaultChecked': // These shouldn't be set as attributes on generic HTML elements.
     case 'innerHTML': // Must use dangerouslySetInnerHTML instead.
+    case 'ref':
     case 'suppressContentEditableWarning':
     case 'suppressHydrationWarning':
       // Ignored. These are built-in to React on the client.
@@ -1738,6 +1739,7 @@ function pushStartCustomElement(
         case 'style':
           pushStyle(target, responseState, propValue);
           break;
+        case 'ref':
         case 'suppressContentEditableWarning':
         case 'suppressHydrationWarning':
           // Ignored. These are built-in to React on the client.
@@ -2957,6 +2959,7 @@ function writeStyleResourceAttribute(
     // Reserved names
     case 'innerHTML':
     case 'dangerouslySetInnerHTML':
+    case 'ref':
     case 'suppressContentEditableWarning':
     case 'suppressHydrationWarning':
     case 'style':

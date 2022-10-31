@@ -114,10 +114,7 @@ import getComponentNameFromFiber from 'react-reconciler/src/getComponentNameFrom
 import getComponentNameFromType from 'shared/getComponentNameFromType';
 import ReactStrictModeWarnings from './ReactStrictModeWarnings.old';
 import {REACT_LAZY_TYPE, getIteratorFn} from 'shared/ReactSymbols';
-import {
-  getCurrentFiberOwnerNameInDevOrNull,
-  setIsRendering,
-} from './ReactCurrentFiber';
+import {setIsRendering} from './ReactCurrentFiber';
 import {
   resolveFunctionForHotReloading,
   resolveForwardRefForHotReloading,
@@ -286,7 +283,6 @@ let didWarnAboutBadClass;
 let didWarnAboutModulePatternComponent;
 let didWarnAboutContextTypeOnFunctionComponent;
 let didWarnAboutGetDerivedStateOnFunctionComponent;
-let didWarnAboutFunctionRefs;
 export let didWarnAboutReassigningProps: boolean;
 let didWarnAboutRevealOrder;
 let didWarnAboutTailOptions;
@@ -297,7 +293,6 @@ if (__DEV__) {
   didWarnAboutModulePatternComponent = {};
   didWarnAboutContextTypeOnFunctionComponent = {};
   didWarnAboutGetDerivedStateOnFunctionComponent = {};
-  didWarnAboutFunctionRefs = {};
   didWarnAboutReassigningProps = false;
   didWarnAboutRevealOrder = {};
   didWarnAboutTailOptions = {};
@@ -1952,28 +1947,6 @@ function validateFunctionComponentInDev(workInProgress: Fiber, Component: any) {
         console.error(
           '%s(...): childContextTypes cannot be defined on a function component.',
           Component.displayName || Component.name || 'Component',
-        );
-      }
-    }
-    if (workInProgress.ref !== null) {
-      let info = '';
-      const ownerName = getCurrentFiberOwnerNameInDevOrNull();
-      if (ownerName) {
-        info += '\n\nCheck the render method of `' + ownerName + '`.';
-      }
-
-      let warningKey = ownerName || '';
-      const debugSource = workInProgress._debugSource;
-      if (debugSource) {
-        warningKey = debugSource.fileName + ':' + debugSource.lineNumber;
-      }
-      if (!didWarnAboutFunctionRefs[warningKey]) {
-        didWarnAboutFunctionRefs[warningKey] = true;
-        console.error(
-          'Function components cannot be given refs. ' +
-            'Attempts to access this ref will fail. ' +
-            'Did you mean to use React.forwardRef()?%s',
-          info,
         );
       }
     }

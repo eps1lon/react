@@ -97,7 +97,7 @@ function coerceRef(
   current: Fiber | null,
   element: ReactElement,
 ) {
-  const mixedRef = element.ref;
+  const mixedRef = element.props.ref;
   if (
     mixedRef !== null &&
     typeof mixedRef !== 'function' &&
@@ -106,6 +106,9 @@ function coerceRef(
     throw new Error(
       'Expected ref to be a function, an object returned by React.createRef(), or null.',
     );
+  }
+  if (mixedRef === undefined) {
+    return null;
   }
   return mixedRef;
 }

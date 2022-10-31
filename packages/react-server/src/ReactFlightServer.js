@@ -278,6 +278,7 @@ function attemptResolveElement(
   prevThenableState: ThenableState | null,
 ): ReactModel {
   if (ref !== null && ref !== undefined) {
+    // ???
     // When the ref moves to the regular props object this will implicitly
     // throw for functions. We could probably relax it to a DEV warning for other
     // cases.
@@ -830,7 +831,7 @@ export function resolveModelToJSON(
           value = attemptResolveElement(
             element.type,
             element.key,
-            element.ref,
+            element.props.ref,
             element.props,
             null,
           );
@@ -1150,7 +1151,7 @@ function retryTask(request: Request, task: Task): void {
       value = attemptResolveElement(
         element.type,
         element.key,
-        element.ref,
+        element.props.ref,
         element.props,
         prevThenableState,
       );
@@ -1173,7 +1174,7 @@ function retryTask(request: Request, task: Task): void {
         value = attemptResolveElement(
           nextElement.type,
           nextElement.key,
-          nextElement.ref,
+          nextElement.props.ref,
           nextElement.props,
           null,
         );

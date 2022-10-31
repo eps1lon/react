@@ -696,7 +696,6 @@ function createReactNoop(reconciler: Function, useMutation: boolean) {
         $$typeof: REACT_ELEMENT_TYPE,
         type: instance.type,
         key: null,
-        ref: null,
         props: props,
         _store: __DEV__ ? {} : undefined,
       };
@@ -746,7 +745,6 @@ function createReactNoop(reconciler: Function, useMutation: boolean) {
         $$typeof: REACT_ELEMENT_TYPE,
         type: REACT_FRAGMENT_TYPE,
         key: null,
-        ref: null,
         props: {children},
         _store: __DEV__ ? {} : undefined,
       };
@@ -775,7 +773,6 @@ function createReactNoop(reconciler: Function, useMutation: boolean) {
         $$typeof: REACT_ELEMENT_TYPE,
         type: REACT_FRAGMENT_TYPE,
         key: null,
-        ref: null,
         props: {children},
         _store: __DEV__ ? {} : undefined,
       };

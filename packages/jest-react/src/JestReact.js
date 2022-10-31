@@ -59,7 +59,7 @@ export function unstable_toMatchRenderedOutput(root, expectedJSX) {
           $$typeof: REACT_ELEMENT_TYPE,
           type: REACT_FRAGMENT_TYPE,
           key: null,
-          ref: null,
+          // No `ref` so that `toEqual` does not access `element.ref` in `expectedJSX`
           props: {
             children: actualJSXChildren,
           },
@@ -92,7 +92,7 @@ function jsonChildToJSXChild(jsonChild) {
       $$typeof: REACT_ELEMENT_TYPE,
       type: jsonChild.type,
       key: null,
-      ref: null,
+      // No `ref` so that `toEqual` does not access `element.ref` in `expectedJSX`
       props:
         jsxChildren === null
           ? jsonChild.props

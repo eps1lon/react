@@ -271,12 +271,6 @@ function validateFragmentProps(fragment) {
         break;
       }
     }
-
-    if (fragment.ref !== null) {
-      setCurrentlyValidatingElement(fragment);
-      console.error('Invalid attribute `ref` supplied to `React.Fragment`.');
-      setCurrentlyValidatingElement(null);
-    }
   }
 }
 

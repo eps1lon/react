@@ -250,6 +250,7 @@ const reservedProps = [
   'defaultValue',
   'defaultChecked',
   'innerHTML',
+  'ref',
   'suppressContentEditableWarning',
   'suppressHydrationWarning',
   'style',

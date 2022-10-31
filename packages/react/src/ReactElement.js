@@ -14,12 +14,11 @@ import ReactCurrentOwner from './ReactCurrentOwner';
 
 const RESERVED_PROPS = {
   key: true,
-  ref: true,
   __self: true,
   __source: true,
 };
 
-let specialPropKeyWarningShown, specialPropRefWarningShown;
+let specialPropKeyWarningShown, didWarnAboutElementRefAccess;
 
 function hasValidRef(config) {
   if (__DEV__) {
@@ -67,28 +66,6 @@ function defineKeyPropWarningGetter(props, displayName) {
   });
 }
 
-function defineRefPropWarningGetter(props, displayName) {
-  const warnAboutAccessingRef = function() {
-    if (__DEV__) {
-      if (!specialPropRefWarningShown) {
-        specialPropRefWarningShown = true;
-        console.error(
-          '%s: `ref` is not a prop. Trying to access it will result ' +
-            'in `undefined` being returned. If you need to access the same ' +
-            'value within the child component, you should pass it as a different ' +
-            'prop. (https://reactjs.org/link/special-props)',
-          displayName,
-        );
-      }
-    }
-  };
-  warnAboutAccessingRef.isReactWarning = true;
-  Object.defineProperty(props, 'ref', {
-    get: warnAboutAccessingRef,
-    configurable: true,
-  });
-}
-
 /**
  * Factory method to create a new React element. This no longer adheres to
  * the class pattern, so do not use new to call it. Also, instanceof check
@@ -109,7 +86,8 @@ function defineRefPropWarningGetter(props, displayName) {
  * indicating filename, line number, and/or other information.
  * @internal
  */
-const ReactElement = function(type, key, ref, self, source, owner, props) {
+const ReactElement = function(type, key, self, source, owner, props) {
+  const ref = hasOwnProperty.call(props, 'ref') ? props.ref : null;
   const element = {
     // This tag allows us to uniquely identify this as a React Element
     $$typeof: REACT_ELEMENT_TYPE,
@@ -117,9 +95,25 @@ const ReactElement = function(type, key, ref, self, source, owner, props) {
     // Built-in properties that belong on the element
     type: type,
     key: key,
-    ref: ref,
     props: props,
   };
+
+  Object.defineProperty(element, 'ref', {
+    get: function() {
+      if (__DEV__) {
+        if (!didWarnAboutElementRefAccess) {
+          console.warn(
+            'Accessing the ref of an element via `element.ref` is deprecated. Use `element.props.ref` instead.',
+          );
+          didWarnAboutElementRefAccess = true;
+        }
+      }
+      return ref;
+    },
+    configurable: true,
+    // Otherwise `.toEqual` matchers will call the getter
+    enumerable: false,
+  });
 
   if (__DEV__) {
     // The validation flag is currently mutative. We put it on
@@ -183,7 +177,6 @@ export function jsx(type, config, maybeKey) {
   const props = {};
 
   let key = null;
-  let ref = null;
 
   // Currently, key can be spread in as a prop. This causes a potential
   // issue if key is also explicitly declared (ie. <div {...props} key="Hi" />
@@ -203,10 +196,6 @@ export function jsx(type, config, maybeKey) {
       checkKeyStringCoercion(config.key);
     }
     key = '' + config.key;
-  }
-
-  if (hasValidRef(config)) {
-    ref = config.ref;
   }
 
   // Remaining properties are added to a new props object
@@ -232,7 +221,6 @@ export function jsx(type, config, maybeKey) {
   return ReactElement(
     type,
     key,
-    ref,
     undefined,
     undefined,
     ReactCurrentOwner.current,
@@ -253,7 +241,6 @@ export function jsxDEV(type, config, maybeKey, source, self) {
   const props = {};
 
   let key = null;
-  let ref = null;
 
   // Currently, key can be spread in as a prop. This causes a potential
   // issue if key is also explicitly declared (ie. <div {...props} key="Hi" />
@@ -273,10 +260,6 @@ export function jsxDEV(type, config, maybeKey, source, self) {
       checkKeyStringCoercion(config.key);
     }
     key = '' + config.key;
-  }
-
-  if (hasValidRef(config)) {
-    ref = config.ref;
   }
 
   // Remaining properties are added to a new props object
@@ -299,7 +282,7 @@ export function jsxDEV(type, config, maybeKey, source, self) {
     }
   }
 
-  if (key || ref) {
+  if (key) {
     const displayName =
       typeof type === 'function'
         ? type.displayName || type.name || 'Unknown'
@@ -307,15 +290,11 @@ export function jsxDEV(type, config, maybeKey, source, self) {
     if (key) {
       defineKeyPropWarningGetter(props, displayName);
     }
-    if (ref) {
-      defineRefPropWarningGetter(props, displayName);
-    }
   }
 
   return ReactElement(
     type,
     key,
-    ref,
     self,
     source,
     ReactCurrentOwner.current,
@@ -334,14 +313,10 @@ export function createElement(type, config, children) {
   const props = {};
 
   let key = null;
-  let ref = null;
   let self = null;
   let source = null;
 
   if (config != null) {
-    if (hasValidRef(config)) {
-      ref = config.ref;
-    }
     if (hasValidKey(config)) {
       if (__DEV__) {
         checkKeyStringCoercion(config.key);
@@ -390,7 +365,7 @@ export function createElement(type, config, children) {
     }
   }
   if (__DEV__) {
-    if (key || ref) {
+    if (key) {
       const displayName =
         typeof type === 'function'
           ? type.displayName || type.name || 'Unknown'
@@ -398,15 +373,11 @@ export function createElement(type, config, children) {
       if (key) {
         defineKeyPropWarningGetter(props, displayName);
       }
-      if (ref) {
-        defineRefPropWarningGetter(props, displayName);
-      }
     }
   }
   return ReactElement(
     type,
     key,
-    ref,
     self,
     source,
     ReactCurrentOwner.current,
@@ -433,7 +404,6 @@ export function cloneAndReplaceKey(oldElement, newKey) {
   const newElement = ReactElement(
     oldElement.type,
     newKey,
-    oldElement.ref,
     oldElement._self,
     oldElement._source,
     oldElement._owner,
@@ -461,7 +431,6 @@ export function cloneElement(element, config, children) {
 
   // Reserved names are extracted
   let key = element.key;
-  let ref = element.ref;
   // Self is preserved since the owner is preserved.
   const self = element._self;
   // Source is preserved since cloneElement is unlikely to be targeted by a
@@ -477,8 +446,6 @@ export function cloneElement(element, config, children) {
 
   if (config != null) {
     if (hasValidRef(config)) {
-      // Silently steal the ref from the parent.
-      ref = config.ref;
       if (__DEV__) {
         owner = ReactCurrentOwner.current;
       }
@@ -523,7 +490,7 @@ export function cloneElement(element, config, children) {
     props.children = childArray;
   }
 
-  return ReactElement(element.type, key, ref, self, source, owner, props);
+  return ReactElement(element.type, key, self, source, owner, props);
 }
 
 /**

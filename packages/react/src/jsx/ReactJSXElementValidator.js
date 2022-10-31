@@ -286,7 +286,7 @@ function validateFragmentProps(fragment) {
       }
     }
 
-    if (fragment.ref !== null) {
+    if (fragment.props.ref !== undefined) {
       setCurrentlyValidatingElement(fragment);
       console.error('Invalid attribute `ref` supplied to `React.Fragment`.');
       setCurrentlyValidatingElement(null);

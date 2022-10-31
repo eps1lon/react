@@ -579,6 +579,7 @@ describe('ReactES6Class', () => {
     test(<Foo ref={ref} />, 'DIV', 'foo');
 
     expect(ref.current.innerRef.current.getName()).toBe('foo');
+    expect(ref.current.innerRef.current.props).not.toHaveProperty('ref')
   });
 
   it('supports drilling through to the DOM using findDOMNode', () => {

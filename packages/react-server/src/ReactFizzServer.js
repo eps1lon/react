@@ -1015,15 +1015,15 @@ function renderForwardRef(
   prevThenableState,
   type: any,
   props: Object,
-  ref: any,
 ): void {
   pushFunctionComponentStackInDEV(task, type.render);
+  const {ref = null, ...renderProps} = props;
   const children = renderWithHooks(
     request,
     task,
     prevThenableState,
     type.render,
-    props,
+    renderProps,
     ref,
   );
   const hasId = checkDidRenderIdHook();
@@ -1051,18 +1051,10 @@ function renderMemo(
   prevThenableState: ThenableState | null,
   type: any,
   props: Object,
-  ref: any,
 ): void {
   const innerType = type.type;
   const resolvedProps = resolveDefaultProps(innerType, props);
-  renderElement(
-    request,
-    task,
-    prevThenableState,
-    innerType,
-    resolvedProps,
-    ref,
-  );
+  renderElement(request, task, prevThenableState, innerType, resolvedProps);
 }
 
 function renderContextConsumer(
@@ -1146,7 +1138,6 @@ function renderLazyComponent(
   prevThenableState: ThenableState | null,
   lazyComponent: LazyComponentType<any, any>,
   props: Object,
-  ref: any,
 ): void {
   pushBuiltInComponentStackInDEV(task, 'Lazy');
   const payload = lazyComponent._payload;
@@ -1159,7 +1150,6 @@ function renderLazyComponent(
     prevThenableState,
     Component,
     resolvedProps,
-    ref,
   );
   popComponentStackInDEV(task);
 }
@@ -1182,11 +1172,12 @@ function renderElement(
   prevThenableState: ThenableState | null,
   type: any,
   props: Object,
-  ref: any,
 ): void {
   if (typeof type === 'function') {
     if (shouldConstruct(type)) {
-      renderClassComponent(request, task, type, props);
+      // eslint-disable-next-line no-unused-vars -- Shallow clone of `props` without `ref`.
+      const {ref, ...renderProps} = props;
+      renderClassComponent(request, task, type, renderProps);
       return;
     } else {
       renderIndeterminateComponent(
@@ -1257,11 +1248,11 @@ function renderElement(
   if (typeof type === 'object' && type !== null) {
     switch (type.$$typeof) {
       case REACT_FORWARD_REF_TYPE: {
-        renderForwardRef(request, task, prevThenableState, type, props, ref);
+        renderForwardRef(request, task, prevThenableState, type, props);
         return;
       }
       case REACT_MEMO_TYPE: {
-        renderMemo(request, task, prevThenableState, type, props, ref);
+        renderMemo(request, task, prevThenableState, type, props);
         return;
       }
       case REACT_PROVIDER_TYPE: {
@@ -1386,8 +1377,7 @@ function renderNodeDestructiveImpl(
         const element: React$Element<any> = (node: any);
         const type = element.type;
         const props = element.props;
-        const ref = element.ref;
-        renderElement(request, task, prevThenableState, type, props, ref);
+        renderElement(request, task, prevThenableState, type, props);
         return;
       }
       case REACT_PORTAL_TYPE:

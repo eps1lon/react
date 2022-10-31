@@ -15,14 +15,13 @@ const ReactCurrentOwner = ReactSharedInternals.ReactCurrentOwner;
 
 const RESERVED_PROPS = {
   key: true,
-  ref: true,
   __self: true,
   __source: true,
 };
 
 let specialPropKeyWarningShown;
-let specialPropRefWarningShown;
 let didWarnAboutStringRefs;
+let didWarnAboutElementRefAccess;
 
 if (__DEV__) {
   didWarnAboutStringRefs = {};
@@ -103,28 +102,6 @@ function defineKeyPropWarningGetter(props, displayName) {
   }
 }
 
-function defineRefPropWarningGetter(props, displayName) {
-  if (__DEV__) {
-    const warnAboutAccessingRef = function() {
-      if (!specialPropRefWarningShown) {
-        specialPropRefWarningShown = true;
-        console.error(
-          '%s: `ref` is not a prop. Trying to access it will result ' +
-            'in `undefined` being returned. If you need to access the same ' +
-            'value within the child component, you should pass it as a different ' +
-            'prop. (https://reactjs.org/link/special-props)',
-          displayName,
-        );
-      }
-    };
-    warnAboutAccessingRef.isReactWarning = true;
-    Object.defineProperty(props, 'ref', {
-      get: warnAboutAccessingRef,
-      configurable: true,
-    });
-  }
-}
-
 /**
  * Factory method to create a new React element. This no longer adheres to
  * the class pattern, so do not use new to call it. Also, instanceof check
@@ -153,9 +130,25 @@ const ReactElement = function(type, key, ref, self, source, owner, props) {
     // Built-in properties that belong on the element
     type,
     key,
-    ref,
     props,
   };
+
+  Object.defineProperty(element, 'ref', {
+    get: function() {
+      if (__DEV__) {
+        if (!didWarnAboutElementRefAccess) {
+          console.warn(
+            'Accessing the ref of an element via `element.ref` is deprecated. Use `element.props.ref` instead.',
+          );
+          didWarnAboutElementRefAccess = true;
+        }
+      }
+      return ref;
+    },
+    configurable: true,
+    // Otherwise `.toEqual` matchers will call the getter
+    enumerable: false,
+  });
 
   if (__DEV__) {
     // The validation flag is currently mutative. We put it on
@@ -344,9 +337,6 @@ export function jsxDEV(type, config, maybeKey, source, self) {
           : type;
       if (key) {
         defineKeyPropWarningGetter(props, displayName);
-      }
-      if (ref) {
-        defineRefPropWarningGetter(props, displayName);
       }
     }
 

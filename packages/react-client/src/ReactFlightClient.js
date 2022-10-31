@@ -94,6 +94,8 @@ type SomeChunk<T> =
   | InitializedChunk<T>
   | ErroredChunk<T>;
 
+let didWarnAboutElementRefAccess;
+
 function Chunk(status: any, value: any, reason: any, response: Response) {
   this.status = status;
   this.value = value;
@@ -377,9 +379,26 @@ function createElement(type, key, props): React$Element<any> {
     // Built-in properties that belong on the element
     type: type,
     key: key,
-    ref: null,
     props: props,
   };
+
+  Object.defineProperty(element, 'ref', {
+    get: function() {
+      if (__DEV__) {
+        if (!didWarnAboutElementRefAccess) {
+          console.warn(
+            'Accessing the ref of an element via `element.ref` is deprecated. Use `element.props.ref` instead.',
+          );
+          didWarnAboutElementRefAccess = true;
+        }
+      }
+      return null;
+    },
+    configurable: true,
+    // Otherwise `.toEqual` matchers will call the getter
+    enumerable: false,
+  });
+
   if (__DEV__) {
     // We don't really need to add any of these but keeping them for good measure.
     // Unfortunately, _store is enumerable in jest matchers so for equality to
