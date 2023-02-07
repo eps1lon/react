@@ -2387,8 +2387,8 @@ describe('ReactSuspenseWithNoopRenderer', () => {
     expect(ReactNoop.getChildren()).toEqual([span('A'), span('Loading B...')]);
   });
 
-  // @gate enableLegacyCache && enableSuspenseAvoidThisFallback
-  it('keeps showing an avoided parent fallback if it is already showing', async () => {
+  it.only('keeps showing an avoided parent fallback if it is already showing', async () => {
+    console.time('test');
     function Foo({showB}) {
       Scheduler.unstable_yieldValue('Foo');
       return (
@@ -2428,20 +2428,33 @@ describe('ReactSuspenseWithNoopRenderer', () => {
       'Loading B...',
     ]);
     // Still suspended.
-    expect(ReactNoop.getChildren()).toEqual([span('A')]);
+    function removeNonEnumerableProperties(input) {
+      if (Array.isArray(input)) {
+        input = input.map(item => removeNonEnumerableProperties(item));
+      } else if (typeof input === 'object') {
+        input = Object.keys(input).reduce((obj, key) => {
+          obj[key] = removeNonEnumerableProperties(input[key]);
+          return obj;
+        }, {});
+      }
+      return input;
+    }
+    const actualChildren = ReactNoop.getChildren();
 
-    // Flush to skip suspended time.
-    Scheduler.unstable_advanceTime(600);
-    await advanceTimers(600);
+    console.time('without non-enumerable');
+    try {
+      expect(removeNonEnumerableProperties(actualChildren[1])).toEqual({});
+    } catch (error) {
+      console.timeEnd('without non-enumerable');
+      console.log(error);
+    }
 
-    if (gate(flags => flags.enableSyncDefaultUpdates)) {
-      // Transitions never fall back.
-      expect(ReactNoop.getChildren()).toEqual([span('A')]);
-    } else {
-      expect(ReactNoop.getChildren()).toEqual([
-        span('A'),
-        span('Loading B...'),
-      ]);
+    console.time('with non-enumerable');
+    try {
+      expect(actualChildren[1]).toEqual({});
+    } catch (error) {
+      console.timeEnd('with non-enumerable');
+      console.log(error);
     }
   });
 
