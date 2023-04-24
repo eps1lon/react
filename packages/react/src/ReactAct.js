@@ -21,6 +21,13 @@ let didWarnNoAwaitAct = false;
 
 export function act<T>(callback: () => T | Thenable<T>): Thenable<T> {
   if (__DEV__) {
+    // We warn in a later task if this `act` call was not awaited.
+    // To make it easier to find the `act` call that wasn't awaited, we'll add
+    // the (sync) stack trace of the `act` call to the warning which we extract
+    // this error if we need it.
+    // eslint-disable-next-line react-internal/prod-error-codes -- Block DEV only
+    const noAwaitError = new Error();
+
     // When ReactCurrentActQueue.current is not null, it signals to React that
     // we're currently inside an `act` scope. React will push all its tasks to
     // this queue instead of scheduling them with platform APIs.
@@ -47,20 +54,8 @@ export function act<T>(callback: () => T | Thenable<T>): Thenable<T> {
     // awaiting it is a mistake, so we will detect that and warn.
     let didAwaitActCall = false;
     try {
-      // Reset this to `false` right before entering the React work loop. The
-      // only place we ever read this fields is just below, right after running
-      // the callback. So we don't need to reset after the callback runs.
-      ReactCurrentActQueue.didScheduleLegacyUpdate = false;
       result = callback();
-      const didScheduleLegacyUpdate =
-        ReactCurrentActQueue.didScheduleLegacyUpdate;
 
-      // Replicate behavior of original `act` implementation in legacy mode,
-      // which flushed updates immediately after the scope function exits, even
-      // if it's an async function.
-      if (!prevIsBatchingLegacy && didScheduleLegacyUpdate) {
-        flushActQueue(queue);
-      }
       // `isBatchingLegacy` gets reset using the regular stack, not the async
       // one used to track `act` scopes. Why, you may be wondering? Because
       // that's how it worked before version 18. Yes, it's confusing! We should
@@ -76,130 +71,65 @@ export function act<T>(callback: () => T | Thenable<T>): Thenable<T> {
       throw error;
     }
 
-    if (
+    // A promise/thenable was returned from the callback. Wait for it to
+    // resolve before flushing the queue.
+    //
+    // TODO: Implement `act` as an async function.
+    const thenable =
       result !== null &&
       typeof result === 'object' &&
       // $FlowFixMe[method-unbinding]
       typeof result.then === 'function'
-    ) {
-      // A promise/thenable was returned from the callback. Wait for it to
-      // resolve before flushing the queue.
-      //
-      // If `act` were implemented as an async function, this whole block could
-      // be a single `await` call. That's really the only difference between
-      // this branch and the next one.
-      const thenable = ((result: any): Thenable<T>);
+        ? ((result: any): Thenable<T>)
+        : Promise.resolve(((result: any): T));
 
-      // Warn if the an `act` call with an async scope is not awaited. In a
-      // future release, consider making this an error.
-      queueSeveralMicrotasks(() => {
-        if (!didAwaitActCall && !didWarnNoAwaitAct) {
-          didWarnNoAwaitAct = true;
-          console.error(
-            'You called act(async () => ...) without await. ' +
-              'This could lead to unexpected testing behaviour, ' +
-              'interleaving multiple act calls and mixing their ' +
-              'scopes. ' +
-              'You should - await act(async () => ...);',
-          );
-        }
-      });
-
-      return {
-        then(resolve: T => mixed, reject: mixed => mixed) {
-          didAwaitActCall = true;
-          thenable.then(
-            returnValue => {
-              popActScope(prevActQueue, prevActScopeDepth);
-              if (prevActScopeDepth === 0) {
-                // We're exiting the outermost `act` scope. Flush the queue.
-                try {
-                  flushActQueue(queue);
-                  queueMacrotask(() =>
-                    // Recursively flush tasks scheduled by a microtask.
-                    recursivelyFlushAsyncActWork(returnValue, resolve, reject),
-                  );
-                } catch (error) {
-                  // `thenable` might not be a real promise, and `flushActQueue`
-                  // might throw, so we need to wrap `flushActQueue` in a
-                  // try/catch.
-                  reject(error);
-                }
-              } else {
-                resolve(returnValue);
-              }
-            },
-            error => {
-              popActScope(prevActQueue, prevActScopeDepth);
-              reject(error);
-            },
-          );
-        },
-      };
-    } else {
-      const returnValue: T = (result: any);
-      // The callback is not an async function. Exit the current
-      // scope immediately.
-      popActScope(prevActQueue, prevActScopeDepth);
-      if (prevActScopeDepth === 0) {
-        // We're exiting the outermost `act` scope. Flush the queue.
-        flushActQueue(queue);
-
-        // If the queue is not empty, it implies that we intentionally yielded
-        // to the main thread, because something suspended. We will continue
-        // in an asynchronous task.
-        //
-        // Warn if something suspends but the `act` call is not awaited.
-        // In a future release, consider making this an error.
-        if (queue.length !== 0) {
-          queueSeveralMicrotasks(() => {
-            if (!didAwaitActCall && !didWarnNoAwaitAct) {
-              didWarnNoAwaitAct = true;
-              console.error(
-                'A component suspended inside an `act` scope, but the ' +
-                  '`act` call was not awaited. When testing React ' +
-                  'components that depend on asynchronous data, you must ' +
-                  'await the result:\n\n' +
-                  'await act(() => ...)',
-              );
-            }
-          });
-        }
-
-        // Like many things in this module, this is next part is confusing.
-        //
-        // We do not currently require every `act` call that is passed a
-        // callback to be awaited, through arguably we should. Since this
-        // callback was synchronous, we need to exit the current scope before
-        // returning.
-        //
-        // However, if thenable we're about to return *is* awaited, we'll
-        // immediately restore the current scope. So it shouldn't observable.
-        //
-        // This doesn't affect the case where the scope callback is async,
-        // because we always require those calls to be awaited.
-        //
-        // TODO: In a future version, consider always requiring all `act` calls
-        // to be awaited, regardless of whether the callback is sync or async.
-        ReactCurrentActQueue.current = null;
+    // Warn if the an `act` call with an async scope is not awaited. In a
+    // future release, consider making this an error.
+    queueSeveralMicrotasks(() => {
+      if (!didAwaitActCall && !didWarnNoAwaitAct) {
+        didWarnNoAwaitAct = true;
+        const stackAddendum = noAwaitError.stack
+          ? ' at\n' + noAwaitError.stack
+          : '.';
+        console.error(
+          '`act` has to be awaited to apply all state updates. ' +
+            'You called `act()` without await%s',
+          stackAddendum,
+        );
       }
-      return {
-        then(resolve: T => mixed, reject: mixed => mixed) {
-          didAwaitActCall = true;
-          if (prevActScopeDepth === 0) {
-            // If the `act` call is awaited, restore the queue we were
-            // using before (see long comment above) so we can flush it.
-            ReactCurrentActQueue.current = queue;
-            queueMacrotask(() =>
-              // Recursively flush tasks scheduled by a microtask.
-              recursivelyFlushAsyncActWork(returnValue, resolve, reject),
-            );
-          } else {
-            resolve(returnValue);
-          }
-        },
-      };
-    }
+    });
+
+    return {
+      then(resolve: T => mixed, reject: mixed => mixed) {
+        didAwaitActCall = true;
+        thenable.then(
+          returnValue => {
+            popActScope(prevActQueue, prevActScopeDepth);
+            if (prevActScopeDepth === 0) {
+              // We're exiting the outermost `act` scope. Flush the queue.
+              try {
+                flushActQueue(queue);
+                queueMacrotask(() =>
+                  // Recursively flush tasks scheduled by a microtask.
+                  recursivelyFlushAsyncActWork(returnValue, resolve, reject),
+                );
+              } catch (error) {
+                // `thenable` might not be a real promise, and `flushActQueue`
+                // might throw, so we need to wrap `flushActQueue` in a
+                // try/catch.
+                reject(error);
+              }
+            } else {
+              resolve(returnValue);
+            }
+          },
+          error => {
+            popActScope(prevActQueue, prevActScopeDepth);
+            reject(error);
+          },
+        );
+      },
+    };
   } else {
     throw new Error('act(...) is not supported in production builds of React.');
   }

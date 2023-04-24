@@ -92,9 +92,9 @@ describe('ReactTestUtils.act()', () => {
     });
 
     // @gate __DEV__
-    it('does not warn in concurrent mode', () => {
+    it('does not warn in concurrent mode', async () => {
       const root = ReactDOMClient.createRoot(document.createElement('div'));
-      act(() => root.render(<App />));
+      await act(() => root.render(<App />));
     });
   });
 });
@@ -117,8 +117,8 @@ function runActTests(label, render, unmount, rerender) {
       document.body.appendChild(container);
     });
 
-    afterEach(() => {
-      act(() => {
+    afterEach(async () => {
+      await act(() => {
         unmount(container);
       });
       document.body.removeChild(container);
@@ -126,7 +126,7 @@ function runActTests(label, render, unmount, rerender) {
 
     describe('sync', () => {
       // @gate __DEV__
-      it('can use act to flush effects', () => {
+      it('can use act to flush effects', async () => {
         function App() {
           React.useEffect(() => {
             Scheduler.log(100);
@@ -134,7 +134,7 @@ function runActTests(label, render, unmount, rerender) {
           return null;
         }
 
-        act(() => {
+        await act(() => {
           render(<App />, container);
         });
 
@@ -155,7 +155,7 @@ function runActTests(label, render, unmount, rerender) {
           );
         }
 
-        act(() => {
+        await act(() => {
           render(<App />, container);
         });
         assertLog([0]);
@@ -179,7 +179,7 @@ function runActTests(label, render, unmount, rerender) {
       });
 
       // @gate __DEV__
-      it("should keep flushing effects until they're done", () => {
+      it("should keep flushing effects until they're done", async () => {
         function App() {
           const [ctr, setCtr] = React.useState(0);
           React.useEffect(() => {
@@ -190,7 +190,7 @@ function runActTests(label, render, unmount, rerender) {
           return ctr;
         }
 
-        act(() => {
+        await act(() => {
           render(<App />, container);
         });
 
@@ -198,7 +198,7 @@ function runActTests(label, render, unmount, rerender) {
       });
 
       // @gate __DEV__
-      it('should flush effects only on exiting the outermost act', () => {
+      it('should flush effects only on exiting the outermost act', async () => {
         function App() {
           React.useEffect(() => {
             Scheduler.log(0);
@@ -206,8 +206,8 @@ function runActTests(label, render, unmount, rerender) {
           return null;
         }
         // let's nest a couple of act() calls
-        act(() => {
-          act(() => {
+        await act(async () => {
+          await act(() => {
             render(<App />, container);
           });
           // the effect wouldn't have yielded yet because
@@ -219,7 +219,7 @@ function runActTests(label, render, unmount, rerender) {
       });
 
       // @gate __DEV__
-      it('warns if a setState is called outside of act(...)', () => {
+      it('warns if a setState is called outside of act(...)', async () => {
         let setValue = null;
         function App() {
           const [value, _setValue] = React.useState(0);
@@ -227,7 +227,7 @@ function runActTests(label, render, unmount, rerender) {
           return value;
         }
 
-        act(() => {
+        await act(() => {
           render(<App />, container);
         });
 
@@ -237,7 +237,7 @@ function runActTests(label, render, unmount, rerender) {
       });
 
       // @gate __DEV__
-      it('warns if a setState is called outside of act(...) after a component threw', () => {
+      it('warns if a setState is called outside of act(...) after a component threw', async () => {
         let setValue = null;
         function App({defaultValue}) {
           if (defaultValue === undefined) {
@@ -248,13 +248,19 @@ function runActTests(label, render, unmount, rerender) {
           return value;
         }
 
-        expect(() => {
+        const throwingAct = () =>
           act(() => {
             render(<App defaultValue={undefined} />, container);
           });
-        }).toThrow('some error');
 
-        act(() => {
+        if (label === 'legacy mode') {
+          // legacy mode renders synchronously so the error is also thrown synchronously.
+          expect(throwingAct).toThrow('some error');
+        } else {
+          await expect(throwingAct()).rejects.toThrow('some error');
+        }
+
+        await act(() => {
           rerender(<App defaultValue={0} />, container);
         });
 
@@ -264,7 +270,7 @@ function runActTests(label, render, unmount, rerender) {
       });
 
       // @gate __DEV__
-      it('does not warn if IS_REACT_ACT_ENVIRONMENT is set to false', () => {
+      it('does not warn if IS_REACT_ACT_ENVIRONMENT is set to false', async () => {
         let setState;
         function App() {
           const [state, _setState] = React.useState(0);
@@ -272,7 +278,7 @@ function runActTests(label, render, unmount, rerender) {
           return state;
         }
 
-        act(() => {
+        await act(() => {
           render(<App />, container);
         });
 
@@ -307,7 +313,7 @@ function runActTests(label, render, unmount, rerender) {
         });
 
         // @gate __DEV__
-        it('lets a ticker update', () => {
+        it('lets a ticker update', async () => {
           function App() {
             const [toggle, setToggle] = React.useState(0);
             React.useEffect(() => {
@@ -319,10 +325,10 @@ function runActTests(label, render, unmount, rerender) {
             return toggle;
           }
 
-          act(() => {
+          await act(() => {
             render(<App />, container);
           });
-          act(() => {
+          await act(() => {
             jest.runAllTimers();
           });
 
@@ -342,7 +348,7 @@ function runActTests(label, render, unmount, rerender) {
             return toggle;
           }
 
-          act(() => {
+          await act(() => {
             render(<App />, container);
           });
           await act(async () => {
@@ -377,7 +383,7 @@ function runActTests(label, render, unmount, rerender) {
         });
 
         // @gate __DEV__
-        it('flushes immediate re-renders with act', () => {
+        it('flushes immediate re-renders with act', async () => {
           function App() {
             const [ctr, setCtr] = React.useState(0);
             React.useEffect(() => {
@@ -390,7 +396,7 @@ function runActTests(label, render, unmount, rerender) {
             return ctr;
           }
 
-          act(() => {
+          await act(() => {
             render(<App />, container);
             // Since effects haven't been flushed yet, this does not advance the timer
             jest.runAllTimers();
@@ -398,7 +404,7 @@ function runActTests(label, render, unmount, rerender) {
 
           expect(container.innerHTML).toBe('1');
 
-          act(() => {
+          await act(() => {
             jest.runAllTimers();
           });
 
@@ -506,7 +512,7 @@ function runActTests(label, render, unmount, rerender) {
         expect(container.innerHTML).toEqual('1');
       });
 
-      // @gate FIXME
+      // @gate __DEV__
       it('flushes few microtasks before exiting (sync function)', async () => {
         // Same as previous test, but the callback passed to `act` is not itself
         // an async function.
@@ -532,13 +538,13 @@ function runActTests(label, render, unmount, rerender) {
       // @gate __DEV__
       it('warns if you do not await an act call', async () => {
         spyOnDevAndProd(console, 'error').mockImplementation(() => {});
-        act(async () => {});
+        act(() => {});
         // it's annoying that we have to wait a tick before this warning comes in
         await sleep(0);
         if (__DEV__) {
           expect(console.error).toHaveBeenCalledTimes(1);
           expect(console.error.mock.calls[0][0]).toMatch(
-            'You called act(async () => ...) without await.',
+            'Warning: `act` has to be awaited to apply all state updates.',
           );
         }
       });
@@ -622,10 +628,10 @@ function runActTests(label, render, unmount, rerender) {
 
     describe('error propagation', () => {
       // @gate __DEV__
-      it('propagates errors - sync', () => {
+      it('propagates errors - sync', async () => {
         let err;
         try {
-          act(() => {
+          await act(() => {
             throw new Error('some error');
           });
         } catch (_err) {
@@ -637,7 +643,7 @@ function runActTests(label, render, unmount, rerender) {
       });
 
       // @gate __DEV__
-      it('should propagate errors from effects - sync', () => {
+      it('should propagate errors from effects - sync', async () => {
         function App() {
           React.useEffect(() => {
             throw new Error('oh no');
@@ -647,7 +653,7 @@ function runActTests(label, render, unmount, rerender) {
         let error;
 
         try {
-          act(() => {
+          await act(() => {
             render(<App />, container);
           });
         } catch (_error) {
@@ -675,7 +681,7 @@ function runActTests(label, render, unmount, rerender) {
       });
 
       // @gate __DEV__
-      it('should cleanup after errors - sync', () => {
+      it('should cleanup after errors - sync', async () => {
         function App() {
           React.useEffect(() => {
             Scheduler.log('oh yes');
@@ -684,7 +690,7 @@ function runActTests(label, render, unmount, rerender) {
         }
         let error;
         try {
-          act(() => {
+          await act(() => {
             throw new Error('oh no');
           });
         } catch (_error) {
@@ -693,7 +699,7 @@ function runActTests(label, render, unmount, rerender) {
           expect(error instanceof Error).toBe(true);
           expect(error.message).toBe('oh no');
           // should be able to render components after this tho
-          act(() => {
+          await act(() => {
             render(<App />, container);
           });
           assertLog(['oh yes']);
@@ -769,12 +775,12 @@ function runActTests(label, render, unmount, rerender) {
           }
 
           // render something so there's content
-          act(() => {
+          await act(() => {
             render(<App suspend={false} />, container);
           });
 
           // trigger a suspendy update
-          act(() => {
+          await act(() => {
             rerender(<App suspend={true} />);
           });
           expect(
@@ -782,17 +788,19 @@ function runActTests(label, render, unmount, rerender) {
           ).not.toBeNull();
 
           // now render regular content again
-          act(() => {
+          await act(() => {
             rerender(<App suspend={false} />);
           });
           expect(document.querySelector('[data-test-id=spinner]')).toBeNull();
 
           // trigger a suspendy update with a delay
+          let actPromise;
           React.startTransition(() => {
-            act(() => {
+            actPromise = act(() => {
               rerender(<App suspend={true} />);
             });
           });
+          await actPromise;
 
           if (label === 'concurrent mode') {
             // In Concurrent Mode, refresh transitions delay indefinitely.
@@ -819,8 +827,8 @@ function runActTests(label, render, unmount, rerender) {
     });
     describe('throw in prod mode', () => {
       // @gate !__DEV__
-      it('warns if you try to use act() in prod mode', () => {
-        expect(() => act(() => {})).toThrow(
+      it('warns if you try to use act() in prod mode', async () => {
+        await expect(() => act(() => {})).resolves.toThrow(
           'act(...) is not supported in production builds of React',
         );
       });
