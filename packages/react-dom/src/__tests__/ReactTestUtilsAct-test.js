@@ -38,31 +38,18 @@ describe('ReactTestUtils.act()', () => {
     let concurrentRoot = null;
     const renderConcurrent = (el, dom) => {
       concurrentRoot = ReactDOMClient.createRoot(dom);
-      if (__DEV__) {
-        act(() => concurrentRoot.render(el));
-      } else {
-        concurrentRoot.render(el);
-      }
+      concurrentRoot.render(el);
     };
 
     const unmountConcurrent = _dom => {
-      if (__DEV__) {
-        act(() => {
-          if (concurrentRoot !== null) {
-            concurrentRoot.unmount();
-            concurrentRoot = null;
-          }
-        });
-      } else {
-        if (concurrentRoot !== null) {
-          concurrentRoot.unmount();
-          concurrentRoot = null;
-        }
+      if (concurrentRoot !== null) {
+        concurrentRoot.unmount();
+        concurrentRoot = null;
       }
     };
 
     const rerenderConcurrent = el => {
-      act(() => concurrentRoot.render(el));
+      concurrentRoot.render(el);
     };
 
     runActTests(
@@ -131,7 +118,9 @@ function runActTests(label, render, unmount, rerender) {
     });
 
     afterEach(() => {
-      unmount(container);
+      act(() => {
+        unmount(container);
+      });
       document.body.removeChild(container);
     });
 
