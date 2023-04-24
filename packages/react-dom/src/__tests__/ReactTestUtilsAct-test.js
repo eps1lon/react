@@ -447,11 +447,11 @@ function runActTests(label, render, unmount, rerender) {
       });
 
       // @gate __DEV__
-      it('flushes microtasks before exiting (async function)', async () => {
+      it('flushes many microtasks before exiting (async function)', async () => {
         function App() {
           const [ctr, setCtr] = React.useState(0);
           async function someAsyncFunction() {
-            // queue a bunch of promises to be sure they all flush
+            // queue many promises to be sure they all flush
             await null;
             await null;
             await null;
@@ -470,15 +470,61 @@ function runActTests(label, render, unmount, rerender) {
       });
 
       // @gate __DEV__
-      it('flushes microtasks before exiting (sync function)', async () => {
+      it('flushes few microtasks before exiting (async function)', async () => {
+        function App() {
+          const [ctr, setCtr] = React.useState(0);
+          async function someAsyncFunction() {
+            // queue few promises to be sure they all flush
+            await null;
+            await null;
+            await null;
+            setCtr(1);
+          }
+          React.useEffect(() => {
+            someAsyncFunction();
+          }, []);
+          return ctr;
+        }
+
+        await act(async () => {
+          render(<App />, container);
+        });
+        expect(container.innerHTML).toEqual('1');
+      });
+
+      // @gate __DEV__
+      it('flushes many microtasks before exiting (sync function)', async () => {
         // Same as previous test, but the callback passed to `act` is not itself
         // an async function.
         function App() {
           const [ctr, setCtr] = React.useState(0);
           async function someAsyncFunction() {
-            // queue a bunch of promises to be sure they all flush
+            // queue many promises to be sure they all flush
             await null;
             await null;
+            await null;
+            setCtr(1);
+          }
+          React.useEffect(() => {
+            someAsyncFunction();
+          }, []);
+          return ctr;
+        }
+
+        await act(() => {
+          render(<App />, container);
+        });
+        expect(container.innerHTML).toEqual('1');
+      });
+
+      // @gate FIXME
+      it('flushes few microtasks before exiting (sync function)', async () => {
+        // Same as previous test, but the callback passed to `act` is not itself
+        // an async function.
+        function App() {
+          const [ctr, setCtr] = React.useState(0);
+          async function someAsyncFunction() {
+            // queue a few of promises to be sure they all flush
             await null;
             setCtr(1);
           }
