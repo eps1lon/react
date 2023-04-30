@@ -61,8 +61,8 @@ describe('DebugTracing', () => {
   });
 
   // @gate experimental && build === 'development' && enableDebugTracing
-  it('should not log anything for concurrent render without suspends or state updates', () => {
-    ReactTestRenderer.act(() =>
+  it('should not log anything for concurrent render without suspends or state updates', async () => {
+    await ReactTestRenderer.act(() =>
       ReactTestRenderer.create(
         <React.unstable_DebugTracingMode>
           <div />
@@ -91,7 +91,7 @@ describe('DebugTracing', () => {
       return null;
     }
 
-    ReactTestRenderer.act(() =>
+    await ReactTestRenderer.act(() =>
       ReactTestRenderer.create(
         <React.unstable_DebugTracingMode>
           <React.Suspense fallback={null}>
@@ -172,7 +172,7 @@ describe('DebugTracing', () => {
       return null;
     }
 
-    ReactTestRenderer.act(() =>
+    await ReactTestRenderer.act(() =>
       ReactTestRenderer.create(
         <React.unstable_DebugTracingMode>
           <React.Suspense fallback={null}>
@@ -196,7 +196,7 @@ describe('DebugTracing', () => {
   });
 
   // @gate experimental && build === 'development' && enableDebugTracing && enableCPUSuspense
-  it('should log concurrent render with CPU suspense', () => {
+  it('should log concurrent render with CPU suspense', async () => {
     function Example() {
       console.log('<Example/>');
       return null;
@@ -207,7 +207,7 @@ describe('DebugTracing', () => {
       return children;
     }
 
-    ReactTestRenderer.act(() =>
+    await ReactTestRenderer.act(() =>
       ReactTestRenderer.create(
         <React.unstable_DebugTracingMode>
           <Wrapper>
@@ -231,7 +231,7 @@ describe('DebugTracing', () => {
   });
 
   // @gate experimental && build === 'development' && enableDebugTracing
-  it('should log cascading class component updates', () => {
+  it('should log cascading class component updates', async () => {
     class Example extends React.Component {
       state = {didMount: false};
       componentDidMount() {
@@ -242,7 +242,7 @@ describe('DebugTracing', () => {
       }
     }
 
-    ReactTestRenderer.act(() =>
+    await ReactTestRenderer.act(() =>
       ReactTestRenderer.create(
         <React.unstable_DebugTracingMode>
           <Example />
@@ -261,7 +261,7 @@ describe('DebugTracing', () => {
   });
 
   // @gate experimental && build === 'development' && enableDebugTracing
-  it('should log render phase state updates for class component', () => {
+  it('should log render phase state updates for class component', async () => {
     class Example extends React.Component {
       state = {didRender: false};
       render() {
@@ -272,8 +272,8 @@ describe('DebugTracing', () => {
       }
     }
 
-    expect(() => {
-      ReactTestRenderer.act(() =>
+    await expect(async () => {
+      await ReactTestRenderer.act(() =>
         ReactTestRenderer.create(
           <React.unstable_DebugTracingMode>
             <Example />
@@ -291,7 +291,7 @@ describe('DebugTracing', () => {
   });
 
   // @gate experimental && build === 'development' && enableDebugTracing
-  it('should log cascading layout updates', () => {
+  it('should log cascading layout updates', async () => {
     function Example() {
       const [didMount, setDidMount] = React.useState(false);
       React.useLayoutEffect(() => {
@@ -300,7 +300,7 @@ describe('DebugTracing', () => {
       return didMount;
     }
 
-    ReactTestRenderer.act(() =>
+    await ReactTestRenderer.act(() =>
       ReactTestRenderer.create(
         <React.unstable_DebugTracingMode>
           <Example />
@@ -319,7 +319,7 @@ describe('DebugTracing', () => {
   });
 
   // @gate experimental && build === 'development' && enableDebugTracing
-  it('should log cascading passive updates', () => {
+  it('should log cascading passive updates', async () => {
     function Example() {
       const [didMount, setDidMount] = React.useState(false);
       React.useEffect(() => {
@@ -328,7 +328,7 @@ describe('DebugTracing', () => {
       return didMount;
     }
 
-    ReactTestRenderer.act(() => {
+    await ReactTestRenderer.act(() => {
       ReactTestRenderer.create(
         <React.unstable_DebugTracingMode>
           <Example />
@@ -344,7 +344,7 @@ describe('DebugTracing', () => {
   });
 
   // @gate experimental && build === 'development' && enableDebugTracing
-  it('should log render phase updates', () => {
+  it('should log render phase updates', async () => {
     function Example() {
       const [didRender, setDidRender] = React.useState(false);
       if (!didRender) {
@@ -353,7 +353,7 @@ describe('DebugTracing', () => {
       return didRender;
     }
 
-    ReactTestRenderer.act(() => {
+    await ReactTestRenderer.act(() => {
       ReactTestRenderer.create(
         <React.unstable_DebugTracingMode>
           <Example />
@@ -370,13 +370,13 @@ describe('DebugTracing', () => {
   });
 
   // @gate experimental && build === 'development' && enableDebugTracing
-  it('should log when user code logs', () => {
+  it('should log when user code logs', async () => {
     function Example() {
       console.log('Hello from user code');
       return null;
     }
 
-    ReactTestRenderer.act(() =>
+    await ReactTestRenderer.act(() =>
       ReactTestRenderer.create(
         <React.unstable_DebugTracingMode>
           <Example />
@@ -393,7 +393,7 @@ describe('DebugTracing', () => {
   });
 
   // @gate experimental && build === 'development' && enableDebugTracing
-  it('should not log anything outside of a unstable_DebugTracingMode subtree', () => {
+  it('should not log anything outside of a unstable_DebugTracingMode subtree', async () => {
     function ExampleThatCascades() {
       const [didMount, setDidMount] = React.useState(false);
       React.useLayoutEffect(() => {
@@ -412,7 +412,7 @@ describe('DebugTracing', () => {
       return null;
     }
 
-    ReactTestRenderer.act(() =>
+    await ReactTestRenderer.act(() =>
       ReactTestRenderer.create(
         <React.Fragment>
           <ExampleThatCascades />

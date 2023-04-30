@@ -257,7 +257,7 @@ function runActTests(label, render, unmount, rerender) {
           // legacy mode renders synchronously so the error is also thrown synchronously.
           expect(throwingAct).toThrow('some error');
         } else {
-          await expect(await throwingAct()).rejects.toThrow('some error');
+          await expect(throwingAct()).rejects.toThrow('some error');
         }
 
         await act(async () => {
@@ -538,7 +538,7 @@ function runActTests(label, render, unmount, rerender) {
       // @gate __DEV__
       it('warns if you do not await an act call', async () => {
         spyOnDevAndProd(console, 'error').mockImplementation(() => {});
-        await act(() => {});
+        act(() => {});
         // it's annoying that we have to wait a tick before this warning comes in
         await sleep(0);
         if (__DEV__) {
@@ -554,10 +554,10 @@ function runActTests(label, render, unmount, rerender) {
         spyOnDevAndProd(console, 'error').mockImplementation(() => {});
 
         await Promise.all([
-          await act(async () => {
+          act(async () => {
             await sleep(50);
           }),
-          await act(async () => {
+          act(async () => {
             await sleep(100);
           }),
         ]);
@@ -795,8 +795,8 @@ function runActTests(label, render, unmount, rerender) {
 
           // trigger a suspendy update with a delay
           let actPromise;
-          React.startTransition(async () => {
-            actPromise = await act(async () => {
+          React.startTransition(() => {
+            actPromise = act(async () => {
               await rerender(<App suspend={true} />);
             });
           });

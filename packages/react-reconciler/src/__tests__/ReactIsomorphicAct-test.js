@@ -271,7 +271,7 @@ describe('isomorphic act()', () => {
 
     spyOnDev(console, 'error').mockImplementation(() => {});
     const root = ReactNoop.createRoot();
-    await act(() => {
+    act(() => {
       startTransition(() => {
         root.render(
           <Suspense fallback={<Fallback />}>

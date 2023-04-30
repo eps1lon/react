@@ -1630,7 +1630,7 @@ describe('ReactFreshIntegration', () => {
     if (!require('shared/ReactFeatureFlags').disableModulePatternComponents) {
       it('remounts deprecated factory components', async () => {
         if (__DEV__) {
-          expect(async () => {
+          await expect(async () => {
             await render(`
               function Parent() {
                 return {

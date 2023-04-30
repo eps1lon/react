@@ -2788,18 +2788,18 @@ describe('ReactFresh', () => {
     }
   });
 
-  it('remounts a failed root on mount', () => {
+  it('remounts a failed root on mount', async () => {
     if (__DEV__) {
-      expect(async () => {
-        await render(() => {
+      await expect(
+        render(() => {
           function Hello() {
             throw new Error('No');
           }
           $RefreshReg$(Hello, 'Hello');
 
           return Hello;
-        });
-      }).toThrow('No');
+        }),
+      ).rejects.toThrow('No');
       expect(container.innerHTML).toBe('');
 
       // A bad retry
@@ -2869,18 +2869,18 @@ describe('ReactFresh', () => {
     }
   });
 
-  it('does not retry an intentionally unmounted failed root', () => {
+  it('does not retry an intentionally unmounted failed root', async () => {
     if (__DEV__) {
-      expect(async () => {
-        await render(() => {
+      await expect(
+        render(() => {
           function Hello() {
             throw new Error('No');
           }
           $RefreshReg$(Hello, 'Hello');
 
           return Hello;
-        });
-      }).toThrow('No');
+        }),
+      ).rejects.toThrow('No');
       expect(container.innerHTML).toBe('');
 
       // Intentional unmount.

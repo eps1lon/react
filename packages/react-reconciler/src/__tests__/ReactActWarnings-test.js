@@ -202,7 +202,7 @@ describe('act warnings', () => {
 
     // Default behavior. Flag is undefined. Warn.
     expect(global.IS_REACT_ACT_ENVIRONMENT).toBe(undefined);
-    expect(async () => {
+    await expect(async () => {
       await act(() => {
         setState(1);
       });
@@ -223,8 +223,8 @@ describe('act warnings', () => {
     });
 
     // Flag is false. Warn.
-    await withActEnvironment(false, () => {
-      expect(async () => {
+    await withActEnvironment(false, async () => {
+      await expect(async () => {
         await act(() => {
           setState(1);
         });
