@@ -31,7 +31,7 @@ describe('Store owners list', () => {
     return printOwnersList(ownersList);
   }
 
-  it('should drill through intermediate components', () => {
+  it('should drill through intermediate components', async () => {
     const Root = () => (
       <Intermediate>
         <div>
@@ -43,7 +43,7 @@ describe('Store owners list', () => {
     const Leaf = () => <div>Leaf</div>;
     const Intermediate = ({children}) => <Wrapper>{children}</Wrapper>;
 
-    act(() => legacyRender(<Root />, document.createElement('div')));
+    await act(() => legacyRender(<Root />, document.createElement('div')));
     expect(store).toMatchInlineSnapshot(`
       [root]
         ▾ <Root>
@@ -66,7 +66,7 @@ describe('Store owners list', () => {
     `);
   });
 
-  it('should drill through interleaved intermediate components', () => {
+  it('should drill through interleaved intermediate components', async () => {
     const Root = () => [
       <Intermediate key="intermediate">
         <Leaf />
@@ -80,7 +80,7 @@ describe('Store owners list', () => {
       <Wrapper key="wrapper">{children}</Wrapper>,
     ];
 
-    act(() => legacyRender(<Root />, document.createElement('div')));
+    await act(() => legacyRender(<Root />, document.createElement('div')));
     expect(store).toMatchInlineSnapshot(`
       [root]
         ▾ <Root>
@@ -107,7 +107,7 @@ describe('Store owners list', () => {
     `);
   });
 
-  it('should show the proper owners list order and contents after insertions and deletions', () => {
+  it('should show the proper owners list order and contents after insertions and deletions', async () => {
     const Root = ({includeDirect, includeIndirect}) => (
       <div>
         {includeDirect ? <Leaf /> : null}
@@ -124,7 +124,7 @@ describe('Store owners list', () => {
 
     const container = document.createElement('div');
 
-    act(() =>
+    await act(() =>
       legacyRender(
         <Root includeDirect={false} includeIndirect={true} />,
         container,
@@ -145,7 +145,7 @@ describe('Store owners list', () => {
               <Leaf>"
     `);
 
-    act(() =>
+    await act(() =>
       legacyRender(
         <Root includeDirect={true} includeIndirect={true} />,
         container,
@@ -166,7 +166,7 @@ describe('Store owners list', () => {
               <Leaf>"
     `);
 
-    act(() =>
+    await act(() =>
       legacyRender(
         <Root includeDirect={true} includeIndirect={false} />,
         container,
@@ -182,7 +182,7 @@ describe('Store owners list', () => {
             <Leaf>"
     `);
 
-    act(() =>
+    await act(() =>
       legacyRender(
         <Root includeDirect={false} includeIndirect={false} />,
         container,
@@ -197,7 +197,7 @@ describe('Store owners list', () => {
     );
   });
 
-  it('should show the proper owners list ordering after reordered children', () => {
+  it('should show the proper owners list ordering after reordered children', async () => {
     const Root = ({ascending}) =>
       ascending
         ? [<Leaf key="A" />, <Leaf key="B" />, <Leaf key="C" />]
@@ -205,7 +205,7 @@ describe('Store owners list', () => {
     const Leaf = () => <div>Leaf</div>;
 
     const container = document.createElement('div');
-    act(() => legacyRender(<Root ascending={true} />, container));
+    await act(() => legacyRender(<Root ascending={true} />, container));
 
     const rootID = store.getElementIDAtIndex(0);
     expect(store).toMatchInlineSnapshot(`
@@ -222,7 +222,7 @@ describe('Store owners list', () => {
             <Leaf key="C">"
     `);
 
-    act(() => legacyRender(<Root ascending={false} />, container));
+    await act(() => legacyRender(<Root ascending={false} />, container));
     expect(store).toMatchInlineSnapshot(`
       [root]
         ▾ <Root>

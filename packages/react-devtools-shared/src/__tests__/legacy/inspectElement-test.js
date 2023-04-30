@@ -66,7 +66,7 @@ describe('InspectedElementContext', () => {
   it('should inspect the currently selected element', async () => {
     const Example = () => null;
 
-    act(() =>
+    await act(() =>
       ReactDOM.render(<Example a={1} b="abc" />, document.createElement('div')),
     );
 
@@ -94,7 +94,7 @@ describe('InspectedElementContext', () => {
   it('should support simple data types', async () => {
     const Example = () => null;
 
-    act(() =>
+    await act(() =>
       ReactDOM.render(
         <Example
           boolean_false={false}
@@ -181,7 +181,7 @@ describe('InspectedElementContext', () => {
     }
     const instance = new Class();
 
-    act(() =>
+    await act(() =>
       ReactDOM.render(
         <Example
           anonymous_fn={instance.anonymousFunction}
@@ -336,7 +336,7 @@ describe('InspectedElementContext', () => {
     object.number = 123;
     object.boolean = true;
 
-    act(() =>
+    await act(() =>
       ReactDOM.render(
         <Example object={object} />,
         document.createElement('div'),
@@ -366,7 +366,7 @@ describe('InspectedElementContext', () => {
       hasOwnProperty: true,
     };
 
-    act(() =>
+    await act(() =>
       ReactDOM.render(
         <Example object={object} />,
         document.createElement('div'),
@@ -393,7 +393,7 @@ describe('InspectedElementContext', () => {
 
     const iteratable = generator();
 
-    act(() =>
+    await act(() =>
       ReactDOM.render(
         <Example iteratable={iteratable} />,
         document.createElement('div'),
@@ -448,7 +448,7 @@ describe('InspectedElementContext', () => {
 
     const Example = ({data}) => null;
 
-    act(() =>
+    await act(() =>
       ReactDOM.render(
         <Example data={new CustomData()} />,
         document.createElement('div'),
@@ -541,7 +541,7 @@ describe('InspectedElementContext', () => {
       },
     });
 
-    act(() =>
+    await act(() =>
       ReactDOM.render(<Example data={object} />, document.createElement('div')),
     );
 
@@ -608,7 +608,7 @@ describe('InspectedElementContext', () => {
     );
 
     const Example = ({data}) => null;
-    act(() =>
+    await act(() =>
       ReactDOM.render(
         <Example data={testData} />,
         document.createElement('div'),
@@ -634,7 +634,7 @@ describe('InspectedElementContext', () => {
   it('should not dehydrate nested values until explicitly requested', async () => {
     const Example = () => null;
 
-    act(() =>
+    await act(() =>
       ReactDOM.render(
         <Example
           nestedObject={{
@@ -734,7 +734,7 @@ describe('InspectedElementContext', () => {
   });
 
   // @reactVersion >= 16.0
-  it('should enable inspected values to be stored as global variables', () => {
+  it('should enable inspected values to be stored as global variables', async () => {
     const Example = () => null;
 
     const nestedObject = {
@@ -749,7 +749,7 @@ describe('InspectedElementContext', () => {
       },
     };
 
-    act(() =>
+    await act(() =>
       ReactDOM.render(
         <Example nestedObject={nestedObject} />,
         document.createElement('div'),
@@ -790,7 +790,7 @@ describe('InspectedElementContext', () => {
   });
 
   // @reactVersion >= 16.0
-  it('should enable inspected values to be copied to the clipboard', () => {
+  it('should enable inspected values to be copied to the clipboard', async () => {
     const Example = () => null;
 
     const nestedObject = {
@@ -805,7 +805,7 @@ describe('InspectedElementContext', () => {
       },
     };
 
-    act(() =>
+    await act(() =>
       ReactDOM.render(
         <Example nestedObject={nestedObject} />,
         document.createElement('div'),
@@ -847,7 +847,7 @@ describe('InspectedElementContext', () => {
   });
 
   // @reactVersion >= 16.0
-  it('should enable complex values to be copied to the clipboard', () => {
+  it('should enable complex values to be copied to the clipboard', async () => {
     const Immutable = require('immutable');
 
     const Example = () => null;
@@ -875,7 +875,7 @@ describe('InspectedElementContext', () => {
     });
     const bigInt = BigInt(123); // eslint-disable-line no-undef
 
-    act(() =>
+    await act(() =>
       ReactDOM.render(
         <Example
           arrayBuffer={arrayBuffer}

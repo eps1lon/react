@@ -190,7 +190,10 @@ export function requireTestRenderer(): ReactTestRenderer {
   }
 }
 
-export function exportImportHelper(bridge: FrontendBridge, store: Store): void {
+export async function exportImportHelper(
+  bridge: FrontendBridge,
+  store: Store,
+): void {
   const {
     prepareProfilingDataExport,
     prepareProfilingDataFrontendFromExport,
@@ -232,7 +235,7 @@ export function exportImportHelper(bridge: FrontendBridge, store: Store): void {
   // Snapshot the JSON-parsed object, rather than the raw string, because Jest formats the diff nicer.
   // expect(parsedProfilingDataExport).toMatchSnapshot('imported data');
 
-  act(() => {
+  await act(() => {
     // Apply the new exported-then-imported data so tests can re-run assertions.
     profilerStore.profilingData = profilingDataFrontend;
   });

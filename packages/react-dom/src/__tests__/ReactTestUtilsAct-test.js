@@ -118,8 +118,8 @@ function runActTests(label, render, unmount, rerender) {
     });
 
     afterEach(async () => {
-      await act(() => {
-        unmount(container);
+      await act(async () => {
+        await unmount(container);
       });
       document.body.removeChild(container);
     });
@@ -257,11 +257,11 @@ function runActTests(label, render, unmount, rerender) {
           // legacy mode renders synchronously so the error is also thrown synchronously.
           expect(throwingAct).toThrow('some error');
         } else {
-          await expect(throwingAct()).rejects.toThrow('some error');
+          await expect(await throwingAct()).rejects.toThrow('some error');
         }
 
-        await act(() => {
-          rerender(<App defaultValue={0} />, container);
+        await act(async () => {
+          await rerender(<App defaultValue={0} />, container);
         });
 
         expect(() => setValue(1)).toErrorDev([
@@ -538,7 +538,7 @@ function runActTests(label, render, unmount, rerender) {
       // @gate __DEV__
       it('warns if you do not await an act call', async () => {
         spyOnDevAndProd(console, 'error').mockImplementation(() => {});
-        act(() => {});
+        await act(() => {});
         // it's annoying that we have to wait a tick before this warning comes in
         await sleep(0);
         if (__DEV__) {
@@ -554,10 +554,10 @@ function runActTests(label, render, unmount, rerender) {
         spyOnDevAndProd(console, 'error').mockImplementation(() => {});
 
         await Promise.all([
-          act(async () => {
+          await act(async () => {
             await sleep(50);
           }),
-          act(async () => {
+          await act(async () => {
             await sleep(100);
           }),
         ]);
@@ -780,24 +780,24 @@ function runActTests(label, render, unmount, rerender) {
           });
 
           // trigger a suspendy update
-          await act(() => {
-            rerender(<App suspend={true} />);
+          await act(async () => {
+            await rerender(<App suspend={true} />);
           });
           expect(
             document.querySelector('[data-test-id=spinner]'),
           ).not.toBeNull();
 
           // now render regular content again
-          await act(() => {
-            rerender(<App suspend={false} />);
+          await act(async () => {
+            await rerender(<App suspend={false} />);
           });
           expect(document.querySelector('[data-test-id=spinner]')).toBeNull();
 
           // trigger a suspendy update with a delay
           let actPromise;
-          React.startTransition(() => {
-            actPromise = act(() => {
-              rerender(<App suspend={true} />);
+          React.startTransition(async () => {
+            actPromise = await act(async () => {
+              await rerender(<App suspend={true} />);
             });
           });
           await actPromise;

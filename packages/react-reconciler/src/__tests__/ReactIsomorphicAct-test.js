@@ -69,7 +69,7 @@ describe('isomorphic act()', () => {
     // Now do the same thing but wrap the update with `act`. No
     // `await` necessary.
     global.IS_REACT_ACT_ENVIRONMENT = true;
-    act(() => {
+    await act(() => {
       ReactNoop.unstable_runWithPriority(DiscreteEventPriority, () => {
         root.render('B');
       });
@@ -109,7 +109,7 @@ describe('isomorphic act()', () => {
   });
 
   // @gate __DEV__
-  test('in legacy mode, updates are batched', () => {
+  test('in legacy mode, updates are batched', async () => {
     const root = ReactNoop.createLegacyRoot();
 
     // Outside of `act`, legacy updates are flushed completely synchronously
@@ -117,7 +117,7 @@ describe('isomorphic act()', () => {
     expect(root).toMatchRenderedOutput('A');
 
     // `act` will batch the updates and flush them at the end
-    act(() => {
+    await act(() => {
       root.render('B');
       // Hasn't flushed yet
       expect(root).toMatchRenderedOutput('A');
@@ -271,7 +271,7 @@ describe('isomorphic act()', () => {
 
     spyOnDev(console, 'error').mockImplementation(() => {});
     const root = ReactNoop.createRoot();
-    act(() => {
+    await act(() => {
       startTransition(() => {
         root.render(
           <Suspense fallback={<Fallback />}>
@@ -321,7 +321,7 @@ describe('isomorphic act()', () => {
 
     spyOnDev(console, 'error').mockImplementation(() => {});
     const root = ReactNoop.createRoot();
-    act(() => {
+    await act(() => {
       startTransition(() => {
         root.render(
           <Suspense fallback={<Fallback />}>

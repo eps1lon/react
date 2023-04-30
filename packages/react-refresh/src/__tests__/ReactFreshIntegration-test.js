@@ -113,16 +113,16 @@ describe('ReactFreshIntegration', () => {
   });
 
   function runTests(execute, test) {
-    function render(source) {
+    async function render(source) {
       const Component = execute(source);
-      act(() => {
+      await act(() => {
         ReactDOM.render(<Component />, container);
       });
       // Module initialization shouldn't be counted as a hot update.
       expect(ReactFreshRuntime.performReactRefresh()).toBe(null);
     }
 
-    function patch(source) {
+    async function patch(source) {
       const prevExports = exportsObj;
       execute(source);
       const nextExports = exportsObj;
@@ -140,11 +140,11 @@ describe('ReactFreshIntegration', () => {
         // This makes adding/removing/renaming exports re-render references to them.
         // Here, we'll just force a re-render using the newer type to emulate this.
         const NextComponent = nextExports.default;
-        act(() => {
+        await act(() => {
           ReactDOM.render(<NextComponent />, container);
         });
       }
-      act(() => {
+      await act(() => {
         const result = ReactFreshRuntime.performReactRefresh();
         if (!didExportsChange) {
           // Normally we expect that some components got updated in our tests.
@@ -717,7 +717,7 @@ describe('ReactFreshIntegration', () => {
       }
     });
 
-    it('resets effects while preserving state', () => {
+    it('resets effects while preserving state', async () => {
       if (__DEV__) {
         render(`
           const {useState} = React;
@@ -751,7 +751,7 @@ describe('ReactFreshIntegration', () => {
         el = container.firstChild;
         expect(el.textContent).toBe('B0');
 
-        act(() => {
+        await act(() => {
           jest.advanceTimersByTime(1000);
         });
         expect(el.textContent).toBe('B1');
@@ -776,7 +776,7 @@ describe('ReactFreshIntegration', () => {
 
         // Effects are always reset, so timer was reinstalled.
         // The new version increments by 10 rather than 1.
-        act(() => {
+        await act(() => {
           jest.advanceTimersByTime(1000);
         });
         expect(el.textContent).toBe('C11');

@@ -19,7 +19,7 @@ describe('ReactTestRenderer.act()', () => {
   });
 
   // @gate __DEV__
-  it('can use .act() to flush effects', () => {
+  it('can use .act() to flush effects', async () => {
     function App(props) {
       const [ctr, setCtr] = React.useState(0);
       React.useEffect(() => {
@@ -30,7 +30,7 @@ describe('ReactTestRenderer.act()', () => {
     }
     const calledLog = [];
     let root;
-    act(() => {
+    await act(() => {
       root = ReactTestRenderer.create(
         <App
           callback={() => {

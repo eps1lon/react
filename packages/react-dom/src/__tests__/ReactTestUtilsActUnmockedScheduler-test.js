@@ -42,13 +42,13 @@ beforeEach(() => {
   document.body.appendChild(container);
 });
 
-afterEach(() => {
-  unmount(container);
+afterEach(async () => {
+  await unmount(container);
   document.body.removeChild(container);
 });
 
 // @gate __DEV__
-it('can use act to flush effects', () => {
+it('can use act to flush effects', async () => {
   function App() {
     React.useEffect(() => {
       yields.push(100);
@@ -56,7 +56,7 @@ it('can use act to flush effects', () => {
     return null;
   }
 
-  act(() => {
+  await act(() => {
     render(<App />, container);
   });
 
@@ -64,7 +64,7 @@ it('can use act to flush effects', () => {
 });
 
 // @gate __DEV__
-it('flushes effects on every call', () => {
+it('flushes effects on every call', async () => {
   function App() {
     const [ctr, setCtr] = React.useState(0);
     React.useEffect(() => {
@@ -77,7 +77,7 @@ it('flushes effects on every call', () => {
     );
   }
 
-  act(() => {
+  await act(() => {
     render(<App />, container);
   });
 
@@ -88,22 +88,22 @@ it('flushes effects on every call', () => {
     button.dispatchEvent(new MouseEvent('click', {bubbles: true}));
   }
 
-  act(() => {
+  await act(() => {
     click();
     click();
     click();
   });
   // it consolidates the 3 updates, then fires the effect
   expect(clearLog()).toEqual([3]);
-  act(click);
+  await act(click);
   expect(clearLog()).toEqual([4]);
-  act(click);
+  await act(click);
   expect(clearLog()).toEqual([5]);
   expect(button.innerHTML).toEqual('5');
 });
 
 // @gate __DEV__
-it("should keep flushing effects until they're done", () => {
+it("should keep flushing effects until they're done", async () => {
   function App() {
     const [ctr, setCtr] = React.useState(0);
     React.useEffect(() => {
@@ -114,7 +114,7 @@ it("should keep flushing effects until they're done", () => {
     return ctr;
   }
 
-  act(() => {
+  await act(() => {
     render(<App />, container);
   });
 
@@ -122,7 +122,7 @@ it("should keep flushing effects until they're done", () => {
 });
 
 // @gate __DEV__
-it('should flush effects only on exiting the outermost act', () => {
+it('should flush effects only on exiting the outermost act', async () => {
   function App() {
     React.useEffect(() => {
       yields.push(0);
@@ -130,8 +130,8 @@ it('should flush effects only on exiting the outermost act', () => {
     return null;
   }
   // let's nest a couple of act() calls
-  act(() => {
-    act(() => {
+  await act(async () => {
+    await act(() => {
       render(<App />, container);
     });
     // the effect wouldn't have yielded yet because

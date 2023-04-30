@@ -49,7 +49,7 @@ describe('editing interface', () => {
     let committedProps;
     let id;
 
-    function mountTestApp() {
+    async function mountTestApp() {
       class ClassComponent extends React.Component {
         componentDidMount() {
           committedProps = this.props;
@@ -62,7 +62,7 @@ describe('editing interface', () => {
         }
       }
 
-      act(() =>
+      await act(() =>
         ReactDOM.render(
           <ClassComponent
             array={[1, 2, 3]}
@@ -85,8 +85,8 @@ describe('editing interface', () => {
     }
 
     // @reactVersion >= 16.0
-    it('should have editable values', () => {
-      mountTestApp();
+    it('should have editable values', async () => {
+      await mountTestApp();
 
       function overrideProps(path, value) {
         const rendererID = ((store.getRendererIDForElement(id): any): number);
@@ -127,8 +127,8 @@ describe('editing interface', () => {
     });
 
     // @reactVersion >= 16.0
-    it('should have editable paths', () => {
-      mountTestApp();
+    it('should have editable paths', async () => {
+      await mountTestApp();
 
       function renamePath(oldPath, newPath) {
         const rendererID = ((store.getRendererIDForElement(id): any): number);
@@ -210,8 +210,8 @@ describe('editing interface', () => {
     });
 
     // @reactVersion >= 16.0
-    it('should have deletable keys', () => {
-      mountTestApp();
+    it('should have deletable keys', async () => {
+      await mountTestApp();
 
       function deletePath(path) {
         const rendererID = ((store.getRendererIDForElement(id): any): number);
@@ -248,7 +248,7 @@ describe('editing interface', () => {
     let committedState;
     let id;
 
-    function mountTestApp() {
+    async function mountTestApp() {
       class ClassComponent extends React.Component {
         state = {
           array: [1, 2, 3],
@@ -268,7 +268,7 @@ describe('editing interface', () => {
         }
       }
 
-      act(() =>
+      await act(() =>
         ReactDOM.render(
           <ClassComponent object={{nested: 'initial'}} shallow="initial" />,
           document.createElement('div'),
@@ -287,8 +287,8 @@ describe('editing interface', () => {
     }
 
     // @reactVersion >= 16.0
-    it('should have editable values', () => {
-      mountTestApp();
+    it('should have editable values', async () => {
+      await mountTestApp();
 
       function overrideState(path, value) {
         const rendererID = ((store.getRendererIDForElement(id): any): number);
@@ -325,8 +325,8 @@ describe('editing interface', () => {
     });
 
     // @reactVersion >= 16.0
-    it('should have editable paths', () => {
-      mountTestApp();
+    it('should have editable paths', async () => {
+      await mountTestApp();
 
       function renamePath(oldPath, newPath) {
         const rendererID = ((store.getRendererIDForElement(id): any): number);
@@ -409,8 +409,8 @@ describe('editing interface', () => {
     });
 
     // @reactVersion >= 16.0
-    it('should have deletable keys', () => {
-      mountTestApp();
+    it('should have deletable keys', async () => {
+      await mountTestApp();
 
       function deletePath(path) {
         const rendererID = ((store.getRendererIDForElement(id): any): number);
@@ -449,7 +449,7 @@ describe('editing interface', () => {
     let committedContext;
     let id;
 
-    function mountTestApp() {
+    async function mountTestApp() {
       class LegacyContextProvider extends React.Component<any> {
         static childContextTypes = {
           array: PropTypes.array,
@@ -487,7 +487,7 @@ describe('editing interface', () => {
         }
       }
 
-      act(() =>
+      await act(() =>
         ReactDOM.render(
           <LegacyContextProvider>
             <ClassComponent />
@@ -511,8 +511,8 @@ describe('editing interface', () => {
     }
 
     // @reactVersion >= 16.0
-    it('should have editable values', () => {
-      mountTestApp();
+    it('should have editable values', async () => {
+      await mountTestApp();
 
       function overrideContext(path, value) {
         const rendererID = ((store.getRendererIDForElement(id): any): number);
@@ -556,8 +556,8 @@ describe('editing interface', () => {
     });
 
     // @reactVersion >= 16.0
-    it('should have editable paths', () => {
-      mountTestApp();
+    it('should have editable paths', async () => {
+      await mountTestApp();
 
       function renamePath(oldPath, newPath) {
         const rendererID = ((store.getRendererIDForElement(id): any): number);
@@ -642,8 +642,8 @@ describe('editing interface', () => {
     });
 
     // @reactVersion >= 16.0
-    it('should have deletable keys', () => {
-      mountTestApp();
+    it('should have deletable keys', async () => {
+      await mountTestApp();
 
       function deletePath(path) {
         const rendererID = ((store.getRendererIDForElement(id): any): number);

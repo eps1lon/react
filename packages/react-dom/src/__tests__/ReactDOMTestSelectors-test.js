@@ -1346,7 +1346,7 @@ No matching component was found for:
 
     // This test reuires gating because it relies on the __DEV__ only commit hook to work.
     // @gate www || experimental && __DEV__
-    it('should update which targets its listening to after a commit', () => {
+    it('should update which targets its listening to after a commit', async () => {
       const ref1 = React.createRef(null);
       const ref2 = React.createRef(null);
 
@@ -1389,7 +1389,7 @@ No matching component was found for:
         {rect: rect1, ratio: 1},
       ]);
 
-      act(() => increment());
+      await act(() => increment());
 
       const rect2 = {
         x: 110,
@@ -1412,7 +1412,7 @@ No matching component was found for:
         {rect: rect2, ratio: 0.25},
       ]);
 
-      act(() => increment());
+      await act(() => increment());
 
       handleVisibilityChange.mockClear();
 

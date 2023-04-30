@@ -202,8 +202,8 @@ describe('act warnings', () => {
 
     // Default behavior. Flag is undefined. Warn.
     expect(global.IS_REACT_ACT_ENVIRONMENT).toBe(undefined);
-    expect(() => {
-      act(() => {
+    expect(async () => {
+      await act(() => {
         setState(1);
       });
     }).toErrorDev(
@@ -214,8 +214,8 @@ describe('act warnings', () => {
     expect(root).toMatchRenderedOutput('1');
 
     // Flag is true. Don't warn.
-    await withActEnvironment(true, () => {
-      act(() => {
+    await withActEnvironment(true, async () => {
+      await act(() => {
         setState(2);
       });
       assertLog([2]);
@@ -224,8 +224,8 @@ describe('act warnings', () => {
 
     // Flag is false. Warn.
     await withActEnvironment(false, () => {
-      expect(() => {
-        act(() => {
+      expect(async () => {
+        await act(() => {
           setState(1);
         });
       }).toErrorDev(
@@ -260,9 +260,9 @@ describe('act warnings', () => {
       }
     }
 
-    await withActEnvironment(true, () => {
+    await withActEnvironment(true, async () => {
       const root = ReactNoop.createRoot();
-      act(() => {
+      await act(() => {
         root.render(<App />);
       });
       expect(() => app.setState({count: 1})).toErrorDev(
@@ -280,9 +280,9 @@ describe('act warnings', () => {
       return <Text text={state} />;
     }
 
-    await withActEnvironment(true, () => {
+    await withActEnvironment(true, async () => {
       const root = ReactNoop.createRoot();
-      act(() => root.render(<App />));
+      await act(() => root.render(<App />));
       assertLog([0]);
       expect(root).toMatchRenderedOutput('0');
 
@@ -308,9 +308,9 @@ describe('act warnings', () => {
       );
     }
 
-    await withActEnvironment(true, () => {
+    await withActEnvironment(true, async () => {
       const root = ReactNoop.createRoot();
-      act(() => {
+      await act(() => {
         root.render(<App />);
       });
       assertLog(['Suspend! [Async]', 'Loading...']);
@@ -336,15 +336,15 @@ describe('act warnings', () => {
       );
     }
 
-    await withActEnvironment(true, () => {
+    await withActEnvironment(true, async () => {
       const root = ReactNoop.createRoot();
-      act(() => {
+      await act(() => {
         root.render(<App showMore={false} />);
       });
       assertLog(['(empty)']);
       expect(root).toMatchRenderedOutput('(empty)');
 
-      act(() => {
+      await act(() => {
         startTransition(() => {
           root.render(<App showMore={true} />);
         });

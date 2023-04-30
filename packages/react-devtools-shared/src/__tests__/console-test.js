@@ -176,7 +176,7 @@ describe('console', () => {
   });
 
   // @reactVersion >=18.0
-  it('should not append multiple stacks', () => {
+  it('should not append multiple stacks', async () => {
     global.__REACT_DEVTOOLS_APPEND_COMPONENT_STACK__ = true;
 
     const Child = ({children}) => {
@@ -185,7 +185,7 @@ describe('console', () => {
       return null;
     };
 
-    act(() => legacyRender(<Child />, document.createElement('div')));
+    await act(() => legacyRender(<Child />, document.createElement('div')));
 
     expect(mockWarn).toHaveBeenCalledTimes(1);
     expect(mockWarn.mock.calls[0]).toHaveLength(1);
@@ -199,7 +199,7 @@ describe('console', () => {
   });
 
   // @reactVersion >=18.0
-  it('should append component stacks to errors and warnings logged during render', () => {
+  it('should append component stacks to errors and warnings logged during render', async () => {
     global.__REACT_DEVTOOLS_APPEND_COMPONENT_STACK__ = true;
 
     const Intermediate = ({children}) => children;
@@ -215,7 +215,7 @@ describe('console', () => {
       return null;
     };
 
-    act(() => legacyRender(<Parent />, document.createElement('div')));
+    await act(() => legacyRender(<Parent />, document.createElement('div')));
 
     expect(mockLog).toHaveBeenCalledTimes(1);
     expect(mockLog.mock.calls[0]).toHaveLength(1);
@@ -235,7 +235,7 @@ describe('console', () => {
   });
 
   // @reactVersion >=18.0
-  it('should append component stacks to errors and warnings logged from effects', () => {
+  it('should append component stacks to errors and warnings logged from effects', async () => {
     const Intermediate = ({children}) => children;
     const Parent = ({children}) => (
       <Intermediate>
@@ -256,7 +256,7 @@ describe('console', () => {
       return null;
     };
 
-    act(() => legacyRender(<Parent />, document.createElement('div')));
+    await act(() => legacyRender(<Parent />, document.createElement('div')));
 
     expect(mockLog).toHaveBeenCalledTimes(2);
     expect(mockLog.mock.calls[0]).toHaveLength(1);
@@ -288,7 +288,7 @@ describe('console', () => {
   });
 
   // @reactVersion >=18.0
-  it('should append component stacks to errors and warnings logged from commit hooks', () => {
+  it('should append component stacks to errors and warnings logged from commit hooks', async () => {
     global.__REACT_DEVTOOLS_APPEND_COMPONENT_STACK__ = true;
 
     const Intermediate = ({children}) => children;
@@ -314,8 +314,8 @@ describe('console', () => {
     }
 
     const container = document.createElement('div');
-    act(() => legacyRender(<Parent />, container));
-    act(() => legacyRender(<Parent />, container));
+    await act(() => legacyRender(<Parent />, container));
+    await act(() => legacyRender(<Parent />, container));
 
     expect(mockLog).toHaveBeenCalledTimes(2);
     expect(mockLog.mock.calls[0]).toHaveLength(1);
@@ -347,7 +347,7 @@ describe('console', () => {
   });
 
   // @reactVersion >=18.0
-  it('should append component stacks to errors and warnings logged from gDSFP', () => {
+  it('should append component stacks to errors and warnings logged from gDSFP', async () => {
     const Intermediate = ({children}) => children;
     const Parent = ({children}) => (
       <Intermediate>
@@ -367,7 +367,7 @@ describe('console', () => {
       }
     }
 
-    act(() => legacyRender(<Parent />, document.createElement('div')));
+    await act(() => legacyRender(<Parent />, document.createElement('div')));
 
     expect(mockLog).toHaveBeenCalledTimes(1);
     expect(mockLog.mock.calls[0]).toHaveLength(1);
@@ -387,7 +387,7 @@ describe('console', () => {
   });
 
   // @reactVersion >=18.0
-  it('should append stacks after being uninstalled and reinstalled', () => {
+  it('should append stacks after being uninstalled and reinstalled', async () => {
     global.__REACT_DEVTOOLS_APPEND_COMPONENT_STACK__ = false;
 
     const Child = ({children}) => {
@@ -396,7 +396,7 @@ describe('console', () => {
       return null;
     };
 
-    act(() => legacyRender(<Child />, document.createElement('div')));
+    await act(() => legacyRender(<Child />, document.createElement('div')));
 
     expect(mockWarn).toHaveBeenCalledTimes(1);
     expect(mockWarn.mock.calls[0]).toHaveLength(1);
@@ -410,7 +410,7 @@ describe('console', () => {
       breakOnConsoleErrors: false,
       showInlineWarningsAndErrors: false,
     });
-    act(() => legacyRender(<Child />, document.createElement('div')));
+    await act(() => legacyRender(<Child />, document.createElement('div')));
 
     expect(mockWarn).toHaveBeenCalledTimes(2);
     expect(mockWarn.mock.calls[1]).toHaveLength(2);
@@ -427,7 +427,7 @@ describe('console', () => {
   });
 
   // @reactVersion >=18.0
-  it('should be resilient to prepareStackTrace', () => {
+  it('should be resilient to prepareStackTrace', async () => {
     global.__REACT_DEVTOOLS_APPEND_COMPONENT_STACK__ = true;
 
     Error.prepareStackTrace = function (error, callsites) {
@@ -457,7 +457,7 @@ describe('console', () => {
       return null;
     };
 
-    act(() => legacyRender(<Parent />, document.createElement('div')));
+    await act(() => legacyRender(<Parent />, document.createElement('div')));
 
     expect(mockLog).toHaveBeenCalledTimes(1);
     expect(mockLog.mock.calls[0]).toHaveLength(1);
@@ -477,19 +477,19 @@ describe('console', () => {
   });
 
   // @reactVersion >=18.0
-  it('should correctly log Symbols', () => {
+  it('should correctly log Symbols', async () => {
     const Component = ({children}) => {
       fakeConsole.warn('Symbol:', Symbol(''));
       return null;
     };
 
-    act(() => legacyRender(<Component />, document.createElement('div')));
+    await act(() => legacyRender(<Component />, document.createElement('div')));
 
     expect(mockWarn).toHaveBeenCalledTimes(1);
     expect(mockWarn.mock.calls[0][0]).toBe('Symbol:');
   });
 
-  it('should double log if hideConsoleLogsInStrictMode is disabled in Strict mode', () => {
+  it('should double log if hideConsoleLogsInStrictMode is disabled in Strict mode', async () => {
     global.__REACT_DEVTOOLS_APPEND_COMPONENT_STACK__ = false;
     global.__REACT_DEVTOOLS_HIDE_CONSOLE_LOGS_IN_STRICT_MODE__ = false;
 
@@ -506,7 +506,7 @@ describe('console', () => {
       return <div />;
     }
 
-    act(() =>
+    await act(() =>
       root.render(
         <React.StrictMode>
           <App />
@@ -572,7 +572,7 @@ describe('console', () => {
     ]);
   });
 
-  it('should not double log if hideConsoleLogsInStrictMode is enabled in Strict mode', () => {
+  it('should not double log if hideConsoleLogsInStrictMode is enabled in Strict mode', async () => {
     global.__REACT_DEVTOOLS_APPEND_COMPONENT_STACK__ = false;
     global.__REACT_DEVTOOLS_HIDE_CONSOLE_LOGS_IN_STRICT_MODE__ = true;
 
@@ -593,7 +593,7 @@ describe('console', () => {
       return <div />;
     }
 
-    act(() =>
+    await act(() =>
       root.render(
         <React.StrictMode>
           <App />
@@ -626,7 +626,7 @@ describe('console', () => {
     expect(mockGroupCollapsed.mock.calls[0][0]).toBe('groupCollapsed');
   });
 
-  it('should double log in Strict mode initial render for extension', () => {
+  it('should double log in Strict mode initial render for extension', async () => {
     global.__REACT_DEVTOOLS_APPEND_COMPONENT_STACK__ = false;
     global.__REACT_DEVTOOLS_HIDE_CONSOLE_LOGS_IN_STRICT_MODE__ = false;
 
@@ -647,7 +647,7 @@ describe('console', () => {
       return <div />;
     }
 
-    act(() =>
+    await act(() =>
       root.render(
         <React.StrictMode>
           <App />
@@ -686,7 +686,7 @@ describe('console', () => {
     ]);
   });
 
-  it('should not double log in Strict mode initial render for extension', () => {
+  it('should not double log in Strict mode initial render for extension', async () => {
     global.__REACT_DEVTOOLS_APPEND_COMPONENT_STACK__ = false;
     global.__REACT_DEVTOOLS_HIDE_CONSOLE_LOGS_IN_STRICT_MODE__ = true;
 
@@ -707,7 +707,7 @@ describe('console', () => {
       return <div />;
     }
 
-    act(() =>
+    await act(() =>
       root.render(
         <React.StrictMode>
           <App />
@@ -727,7 +727,7 @@ describe('console', () => {
     expect(mockError.mock.calls[0][0]).toBe('error');
   });
 
-  it('should properly dim component stacks during strict mode double log', () => {
+  it('should properly dim component stacks during strict mode double log', async () => {
     global.__REACT_DEVTOOLS_APPEND_COMPONENT_STACK__ = true;
     global.__REACT_DEVTOOLS_HIDE_CONSOLE_LOGS_IN_STRICT_MODE__ = false;
 
@@ -746,7 +746,7 @@ describe('console', () => {
       return null;
     };
 
-    act(() =>
+    await act(() =>
       root.render(
         <React.StrictMode>
           <Parent />
@@ -846,8 +846,8 @@ describe('console error', () => {
       hideConsoleLogsInStrictMode: false,
     });
 
-    expect(() => {
-      act(() => {
+    expect(async () => {
+      await act(() => {
         root.render(<App />);
       });
     }).toThrowError('foo');

@@ -997,7 +997,7 @@ describe('Timeline profiler', () => {
 
       await waitForAll([]);
 
-      unmount();
+      await unmount();
 
       assertLog([
         'layout 1 unmount',
@@ -2259,7 +2259,7 @@ describe('Timeline profiler', () => {
 
         await waitForAll([]);
 
-        unmount();
+        await unmount();
 
         assertLog([
           'layout 1 unmount',

@@ -36,7 +36,7 @@ describe('component stack', () => {
   });
 
   // @reactVersion >=16.9
-  it('should log the current component stack along with an error or warning', () => {
+  it('should log the current component stack along with an error or warning', async () => {
     const Grandparent = () => <Parent />;
     const Parent = () => <Child />;
     const Child = () => {
@@ -47,7 +47,7 @@ describe('component stack', () => {
 
     const container = document.createElement('div');
 
-    act(() => legacyRender(<Grandparent />, container));
+    await act(() => legacyRender(<Grandparent />, container));
 
     expect(mockError).toHaveBeenCalledWith(
       'Test error.',
@@ -67,7 +67,7 @@ describe('component stack', () => {
   // but didn't because both DevTools and ReactDOM are running in the same memory space,
   // so the case we're testing against (DevTools prod build and React DEV build) doesn't exist.
   // It would be nice to figure out a way to test this combination at some point...
-  xit('should disable the current dispatcher before shallow rendering so no effects get scheduled', () => {
+  xit('should disable the current dispatcher before shallow rendering so no effects get scheduled', async () => {
     let useEffectCount = 0;
 
     const Example = props => {
@@ -80,7 +80,7 @@ describe('component stack', () => {
     };
 
     const container = document.createElement('div');
-    act(() => legacyRender(<Example test="abc" />, container));
+    await act(() => legacyRender(<Example test="abc" />, container));
 
     expect(useEffectCount).toBe(1);
 

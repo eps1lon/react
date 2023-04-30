@@ -31,7 +31,7 @@ describe('ReactFiberHostContext', () => {
   global.IS_REACT_ACT_ENVIRONMENT = true;
 
   // @gate __DEV__
-  it('should send the context to prepareForCommit and resetAfterCommit', () => {
+  it('should send the context to prepareForCommit and resetAfterCommit', async () => {
     const rootContext = {};
     const childContext = {};
     const Renderer = ReactFiberReconciler({
@@ -96,7 +96,7 @@ describe('ReactFiberHostContext', () => {
       '',
       null,
     );
-    act(() => {
+    await act(() => {
       Renderer.updateContainer(
         <a>
           <b />

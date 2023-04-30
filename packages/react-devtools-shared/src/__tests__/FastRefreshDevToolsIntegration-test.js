@@ -70,16 +70,16 @@ describe('Fast Refresh', () => {
     return exportsObj.default;
   }
 
-  function render(source) {
+  async function render(source) {
     const Component = execute(source);
-    act(() => {
+    await act(() => {
       legacyRender(<Component />, container);
     });
     // Module initialization shouldn't be counted as a hot update.
     expect(ReactFreshRuntime.performReactRefresh()).toBe(null);
   }
 
-  function patch(source) {
+  async function patch(source) {
     const prevExports = exportsObj;
     execute(source);
     const nextExports = exportsObj;
@@ -97,11 +97,11 @@ describe('Fast Refresh', () => {
       // This makes adding/removing/renaming exports re-render references to them.
       // Here, we'll just force a re-render using the newer type to emulate this.
       const NextComponent = nextExports.default;
-      act(() => {
+      await act(() => {
         legacyRender(<NextComponent />, container);
       });
     }
-    act(() => {
+    await act(() => {
       const result = ReactFreshRuntime.performReactRefresh();
       if (!didExportsChange) {
         // Normally we expect that some components got updated in our tests.
@@ -124,8 +124,8 @@ describe('Fast Refresh', () => {
   }
 
   // @reactVersion >= 16.9
-  it('should not break the DevTools store', () => {
-    render(`
+  it('should not break the DevTools store', async () => {
+    await render(`
       function Parent() {
         return <Child key="A" />;
       };
@@ -145,7 +145,7 @@ describe('Fast Refresh', () => {
     let element = container.firstChild;
     expect(container.firstChild).not.toBe(null);
 
-    patch(`
+    await patch(`
       function Parent() {
         return <Child key="A" />;
       };
@@ -166,7 +166,7 @@ describe('Fast Refresh', () => {
     expect(container.firstChild).toBe(element);
     element = container.firstChild;
 
-    patch(`
+    await patch(`
       function Parent() {
         return <Child key="B" />;
       };
@@ -189,8 +189,8 @@ describe('Fast Refresh', () => {
 
   // @reactVersion >= 16.9
   it('should not break when there are warnings in between patching', () => {
-    withErrorsOrWarningsIgnored(['Expected:'], () => {
-      render(`
+    withErrorsOrWarningsIgnored(['Expected:'], async () => {
+      await render(`
       const {useState} = React;
 
       export default function Component() {
@@ -206,8 +206,8 @@ describe('Fast Refresh', () => {
           <Component> ⚠
     `);
 
-    withErrorsOrWarningsIgnored(['Expected:'], () => {
-      patch(`
+    withErrorsOrWarningsIgnored(['Expected:'], async () => {
+      await patch(`
       const {useEffect, useState} = React;
 
       export default function Component() {
@@ -223,8 +223,8 @@ describe('Fast Refresh', () => {
           <Component> ⚠
     `);
 
-    withErrorsOrWarningsIgnored(['Expected:'], () => {
-      patch(`
+    withErrorsOrWarningsIgnored(['Expected:'], async () => {
+      await patch(`
       const {useEffect, useState} = React;
 
       export default function Component() {
@@ -243,8 +243,8 @@ describe('Fast Refresh', () => {
           <Component> ✕⚠
     `);
 
-    withErrorsOrWarningsIgnored(['Expected:'], () => {
-      patch(`
+    withErrorsOrWarningsIgnored(['Expected:'], async () => {
+      await patch(`
       const {useEffect, useState} = React;
 
       export default function Component() {

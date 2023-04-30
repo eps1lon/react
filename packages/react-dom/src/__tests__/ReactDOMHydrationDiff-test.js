@@ -68,12 +68,12 @@ describe('ReactDOMServerHydration', () => {
     return console.error.mock.calls.map(formatMessage).filter(Boolean);
   }
 
-  function testMismatch(Mismatch) {
+  async function testMismatch(Mismatch) {
     const htmlString = ReactDOMServer.renderToString(
       <Mismatch isClient={false} />,
     );
     container.innerHTML = htmlString;
-    act(() => {
+    await act(() => {
       ReactDOMClient.hydrateRoot(container, <Mismatch isClient={true} />);
     });
     return formatConsoleErrors();
@@ -81,7 +81,7 @@ describe('ReactDOMServerHydration', () => {
 
   describe('text mismatch', () => {
     // @gate __DEV__
-    it('warns when client and server render different text', () => {
+    it('warns when client and server render different text', async () => {
       function Mismatch({isClient}) {
         return (
           <div className="parent">
@@ -90,7 +90,7 @@ describe('ReactDOMServerHydration', () => {
         );
       }
       if (gate(flags => flags.enableClientRenderFallbackOnTextMismatch)) {
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
           [
             "Warning: Text content did not match. Server: "server" Client: "client"
               in main (at **)
@@ -102,7 +102,7 @@ describe('ReactDOMServerHydration', () => {
           ]
         `);
       } else {
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
           [
             "Warning: Text content did not match. Server: "server" Client: "client"
               in main (at **)
@@ -114,7 +114,7 @@ describe('ReactDOMServerHydration', () => {
     });
 
     // @gate __DEV__
-    it('warns when client and server render different html', () => {
+    it('warns when client and server render different html', async () => {
       function Mismatch({isClient}) {
         return (
           <div className="parent">
@@ -129,7 +129,7 @@ describe('ReactDOMServerHydration', () => {
           </div>
         );
       }
-      expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+      expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
         [
           "Warning: Prop \`dangerouslySetInnerHTML\` did not match. Server: "<span>server</span>" Client: "<span>client</span>"
             in main (at **)
@@ -142,7 +142,7 @@ describe('ReactDOMServerHydration', () => {
 
   describe('attribute mismatch', () => {
     // @gate __DEV__
-    it('warns when client and server render different attributes', () => {
+    it('warns when client and server render different attributes', async () => {
       function Mismatch({isClient}) {
         return (
           <div className="parent">
@@ -153,7 +153,7 @@ describe('ReactDOMServerHydration', () => {
           </div>
         );
       }
-      expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+      expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
         [
           "Warning: Prop \`className\` did not match. Server: "child server" Client: "child client"
             in main (at **)
@@ -164,7 +164,7 @@ describe('ReactDOMServerHydration', () => {
     });
 
     // @gate __DEV__
-    it('warns when client renders extra attributes', () => {
+    it('warns when client renders extra attributes', async () => {
       function Mismatch({isClient}) {
         return (
           <div className="parent">
@@ -176,7 +176,7 @@ describe('ReactDOMServerHydration', () => {
           </div>
         );
       }
-      expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+      expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
         [
           "Warning: Prop \`tabIndex\` did not match. Server: "null" Client: "1"
             in main (at **)
@@ -187,7 +187,7 @@ describe('ReactDOMServerHydration', () => {
     });
 
     // @gate __DEV__
-    it('warns when server renders extra attributes', () => {
+    it('warns when server renders extra attributes', async () => {
       function Mismatch({isClient}) {
         return (
           <div className="parent">
@@ -199,7 +199,7 @@ describe('ReactDOMServerHydration', () => {
           </div>
         );
       }
-      expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+      expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
         [
           "Warning: Extra attributes from the server: tabindex,dir
             in main (at **)
@@ -210,7 +210,7 @@ describe('ReactDOMServerHydration', () => {
     });
 
     // @gate __DEV__
-    it('warns when both client and server render extra attributes', () => {
+    it('warns when both client and server render extra attributes', async () => {
       function Mismatch({isClient}) {
         return (
           <div className="parent">
@@ -222,7 +222,7 @@ describe('ReactDOMServerHydration', () => {
           </div>
         );
       }
-      expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+      expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
         [
           "Warning: Prop \`tabIndex\` did not match. Server: "null" Client: "1"
             in main (at **)
@@ -233,7 +233,7 @@ describe('ReactDOMServerHydration', () => {
     });
 
     // @gate __DEV__
-    it('warns when client and server render different styles', () => {
+    it('warns when client and server render different styles', async () => {
       function Mismatch({isClient}) {
         return (
           <div className="parent">
@@ -246,7 +246,7 @@ describe('ReactDOMServerHydration', () => {
           </div>
         );
       }
-      expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+      expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
         [
           "Warning: Prop \`style\` did not match. Server: "opacity:0" Client: "opacity:1"
             in main (at **)
@@ -260,7 +260,7 @@ describe('ReactDOMServerHydration', () => {
   describe('extra nodes on the client', () => {
     describe('extra elements on the client', () => {
       // @gate __DEV__
-      it('warns when client renders an extra element as only child', () => {
+      it('warns when client renders an extra element as only child', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -268,7 +268,7 @@ describe('ReactDOMServerHydration', () => {
             </div>
           );
         }
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Warning: Expected server HTML to contain a matching <main> in <div>.
                 in main (at **)
@@ -282,7 +282,7 @@ describe('ReactDOMServerHydration', () => {
       });
 
       // @gate __DEV__
-      it('warns when client renders an extra element in the beginning', () => {
+      it('warns when client renders an extra element in the beginning', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -292,7 +292,7 @@ describe('ReactDOMServerHydration', () => {
             </div>
           );
         }
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Warning: Expected server HTML to contain a matching <header> in <div>.
                 in header (at **)
@@ -306,7 +306,7 @@ describe('ReactDOMServerHydration', () => {
       });
 
       // @gate __DEV__
-      it('warns when client renders an extra element in the middle', () => {
+      it('warns when client renders an extra element in the middle', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -316,7 +316,7 @@ describe('ReactDOMServerHydration', () => {
             </div>
           );
         }
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Warning: Expected server HTML to contain a matching <main> in <div>.
                 in main (at **)
@@ -330,7 +330,7 @@ describe('ReactDOMServerHydration', () => {
       });
 
       // @gate __DEV__
-      it('warns when client renders an extra element in the end', () => {
+      it('warns when client renders an extra element in the end', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -340,7 +340,7 @@ describe('ReactDOMServerHydration', () => {
             </div>
           );
         }
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Warning: Expected server HTML to contain a matching <footer> in <div>.
                 in footer (at **)
@@ -356,12 +356,12 @@ describe('ReactDOMServerHydration', () => {
 
     describe('extra text nodes on the client', () => {
       // @gate __DEV__
-      it('warns when client renders an extra text node as only child', () => {
+      it('warns when client renders an extra text node as only child', async () => {
         function Mismatch({isClient}) {
           return <div className="parent">{isClient && 'only'}</div>;
         }
         if (gate(flags => flags.enableClientRenderFallbackOnTextMismatch)) {
-          expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+          expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Warning: Text content did not match. Server: "" Client: "only"
                 in div (at **)
@@ -372,7 +372,7 @@ describe('ReactDOMServerHydration', () => {
             ]
           `);
         } else {
-          expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+          expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Warning: Text content did not match. Server: "" Client: "only"
                 in div (at **)
@@ -383,7 +383,7 @@ describe('ReactDOMServerHydration', () => {
       });
 
       // @gate __DEV__
-      it('warns when client renders an extra text node in the beginning', () => {
+      it('warns when client renders an extra text node in the beginning', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -393,7 +393,7 @@ describe('ReactDOMServerHydration', () => {
             </div>
           );
         }
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Warning: Expected server HTML to contain a matching text node for "second" in <div>.
                 in div (at **)
@@ -406,7 +406,7 @@ describe('ReactDOMServerHydration', () => {
       });
 
       // @gate __DEV__
-      it('warns when client renders an extra text node in the beginning', () => {
+      it('warns when client renders an extra text node in the beginning', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -416,7 +416,7 @@ describe('ReactDOMServerHydration', () => {
             </div>
           );
         }
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Warning: Expected server HTML to contain a matching text node for "first" in <div>.
                 in div (at **)
@@ -429,7 +429,7 @@ describe('ReactDOMServerHydration', () => {
       });
 
       // @gate __DEV__
-      it('warns when client renders an extra text node in the end', () => {
+      it('warns when client renders an extra text node in the end', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -439,7 +439,7 @@ describe('ReactDOMServerHydration', () => {
             </div>
           );
         }
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Warning: Expected server HTML to contain a matching text node for "third" in <div>.
                 in div (at **)
@@ -456,7 +456,7 @@ describe('ReactDOMServerHydration', () => {
   describe('extra nodes on the server', () => {
     describe('extra elements on the server', () => {
       // @gate __DEV__
-      it('warns when server renders an extra element as only child', () => {
+      it('warns when server renders an extra element as only child', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -464,7 +464,7 @@ describe('ReactDOMServerHydration', () => {
             </div>
           );
         }
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Warning: Did not expect server HTML to contain a <main> in <div>.
                 in div (at **)
@@ -477,7 +477,7 @@ describe('ReactDOMServerHydration', () => {
       });
 
       // @gate __DEV__
-      it('warns when server renders an extra element in the beginning', () => {
+      it('warns when server renders an extra element in the beginning', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -487,7 +487,7 @@ describe('ReactDOMServerHydration', () => {
             </div>
           );
         }
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
           [
             "Warning: Expected server HTML to contain a matching <main> in <div>.
               in main (at **)
@@ -501,7 +501,7 @@ describe('ReactDOMServerHydration', () => {
       });
 
       // @gate __DEV__
-      it('warns when server renders an extra element in the middle', () => {
+      it('warns when server renders an extra element in the middle', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -511,7 +511,7 @@ describe('ReactDOMServerHydration', () => {
             </div>
           );
         }
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Warning: Expected server HTML to contain a matching <footer> in <div>.
                 in footer (at **)
@@ -525,7 +525,7 @@ describe('ReactDOMServerHydration', () => {
       });
 
       // @gate __DEV__
-      it('warns when server renders an extra element in the end', () => {
+      it('warns when server renders an extra element in the end', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -535,7 +535,7 @@ describe('ReactDOMServerHydration', () => {
             </div>
           );
         }
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Warning: Did not expect server HTML to contain a <footer> in <div>.
                 in div (at **)
@@ -550,11 +550,11 @@ describe('ReactDOMServerHydration', () => {
 
     describe('extra text nodes on the server', () => {
       // @gate __DEV__
-      it('warns when server renders an extra text node as only child', () => {
+      it('warns when server renders an extra text node as only child', async () => {
         function Mismatch({isClient}) {
           return <div className="parent">{!isClient && 'only'}</div>;
         }
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Warning: Did not expect server HTML to contain the text node "only" in <div>.
                 in div (at **)
@@ -567,7 +567,7 @@ describe('ReactDOMServerHydration', () => {
       });
 
       // @gate __DEV__
-      it('warns when server renders an extra text node in the beginning', () => {
+      it('warns when server renders an extra text node in the beginning', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -577,7 +577,7 @@ describe('ReactDOMServerHydration', () => {
             </div>
           );
         }
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
           [
             "Warning: Expected server HTML to contain a matching <main> in <div>.
               in main (at **)
@@ -591,7 +591,7 @@ describe('ReactDOMServerHydration', () => {
       });
 
       // @gate __DEV__
-      it('warns when server renders an extra text node in the middle', () => {
+      it('warns when server renders an extra text node in the middle', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -601,7 +601,7 @@ describe('ReactDOMServerHydration', () => {
             </div>
           );
         }
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Warning: Expected server HTML to contain a matching <footer> in <div>.
                 in footer (at **)
@@ -615,7 +615,7 @@ describe('ReactDOMServerHydration', () => {
       });
 
       // @gate __DEV__
-      it('warns when server renders an extra text node in the end', () => {
+      it('warns when server renders an extra text node in the end', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -625,7 +625,7 @@ describe('ReactDOMServerHydration', () => {
             </div>
           );
         }
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Warning: Did not expect server HTML to contain the text node "third" in <div>.
                 in div (at **)
@@ -646,7 +646,7 @@ describe('ReactDOMServerHydration', () => {
       }
 
       // @gate __DEV__
-      it('warns when client renders an extra Suspense node in content mode', () => {
+      it('warns when client renders an extra Suspense node in content mode', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -659,7 +659,7 @@ describe('ReactDOMServerHydration', () => {
           );
         }
         // TODO: This message doesn't seem to have any useful details.
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Warning: An error occurred during hydration. The server HTML was replaced with client content in <div>.",
               "Caught [Hydration failed because the initial UI does not match what was rendered on the server.]",
@@ -669,7 +669,7 @@ describe('ReactDOMServerHydration', () => {
       });
 
       // @gate __DEV__
-      it('warns when server renders an extra Suspense node in content mode', () => {
+      it('warns when server renders an extra Suspense node in content mode', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -681,7 +681,7 @@ describe('ReactDOMServerHydration', () => {
             </div>
           );
         }
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Warning: Did not expect server HTML to contain a <main> in <div>.
                 in div (at **)
@@ -694,7 +694,7 @@ describe('ReactDOMServerHydration', () => {
       });
 
       // @gate __DEV__
-      it('warns when client renders an extra Suspense node in fallback mode', () => {
+      it('warns when client renders an extra Suspense node in fallback mode', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -708,7 +708,7 @@ describe('ReactDOMServerHydration', () => {
           );
         }
         // TODO: This message doesn't seem to have any useful details.
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Warning: An error occurred during hydration. The server HTML was replaced with client content in <div>.",
               "Caught [Hydration failed because the initial UI does not match what was rendered on the server.]",
@@ -718,7 +718,7 @@ describe('ReactDOMServerHydration', () => {
       });
 
       // @gate __DEV__
-      it('warns when server renders an extra Suspense node in fallback mode', () => {
+      it('warns when server renders an extra Suspense node in fallback mode', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -736,7 +736,7 @@ describe('ReactDOMServerHydration', () => {
         // suspense boundaries. This leaks in this test becuase the client rendered suspense boundary appears like
         // unhydrated tail nodes and this template is the first match. When we add special case handling for client
         // rendered suspense boundaries this test will likely change again
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Warning: Did not expect server HTML to contain a <template> in <div>.
                 in div (at **)
@@ -749,7 +749,7 @@ describe('ReactDOMServerHydration', () => {
       });
 
       // @gate __DEV__
-      it('warns when client renders an extra node inside Suspense content', () => {
+      it('warns when client renders an extra node inside Suspense content', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -761,7 +761,7 @@ describe('ReactDOMServerHydration', () => {
             </div>
           );
         }
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Warning: Expected server HTML to contain a matching <main> in <div>.
                 in main (at **)
@@ -775,7 +775,7 @@ describe('ReactDOMServerHydration', () => {
       });
 
       // @gate __DEV__
-      it('warns when server renders an extra node inside Suspense content', () => {
+      it('warns when server renders an extra node inside Suspense content', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -787,7 +787,7 @@ describe('ReactDOMServerHydration', () => {
             </div>
           );
         }
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Warning: Expected server HTML to contain a matching <footer> in <div>.
                 in footer (at **)
@@ -801,7 +801,7 @@ describe('ReactDOMServerHydration', () => {
       });
 
       // @gate __DEV__
-      it('warns when client renders an extra node inside Suspense fallback', () => {
+      it('warns when client renders an extra node inside Suspense fallback', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -819,7 +819,7 @@ describe('ReactDOMServerHydration', () => {
           );
         }
 
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Caught [The server did not finish this Suspense boundary: The server used "renderToString" which does not support Suspense. If you intended for this Suspense boundary to render the fallback content on the server consider throwing an Error somewhere within the Suspense boundary. If you intended to have the server wait for the suspended component please switch to "renderToPipeableStream" which supports Suspense on the server]",
             ]
@@ -827,7 +827,7 @@ describe('ReactDOMServerHydration', () => {
       });
 
       // @gate __DEV__
-      it('warns when server renders an extra node inside Suspense fallback', () => {
+      it('warns when server renders an extra node inside Suspense fallback', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -845,7 +845,7 @@ describe('ReactDOMServerHydration', () => {
           );
         }
 
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Caught [The server did not finish this Suspense boundary: The server used "renderToString" which does not support Suspense. If you intended for this Suspense boundary to render the fallback content on the server consider throwing an Error somewhere within the Suspense boundary. If you intended to have the server wait for the suspended component please switch to "renderToPipeableStream" which supports Suspense on the server]",
             ]
@@ -855,7 +855,7 @@ describe('ReactDOMServerHydration', () => {
 
     describe('Fragment', () => {
       // @gate __DEV__
-      it('warns when client renders an extra Fragment node', () => {
+      it('warns when client renders an extra Fragment node', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -869,7 +869,7 @@ describe('ReactDOMServerHydration', () => {
             </div>
           );
         }
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
           [
             "Warning: Expected server HTML to contain a matching <header> in <div>.
               in header (at **)
@@ -883,7 +883,7 @@ describe('ReactDOMServerHydration', () => {
       });
 
       // @gate __DEV__
-      it('warns when server renders an extra Fragment node', () => {
+      it('warns when server renders an extra Fragment node', async () => {
         function Mismatch({isClient}) {
           return (
             <div className="parent">
@@ -897,7 +897,7 @@ describe('ReactDOMServerHydration', () => {
             </div>
           );
         }
-        expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+        expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
             [
               "Warning: Did not expect server HTML to contain a <header> in <div>.
                 in div (at **)
@@ -913,7 +913,7 @@ describe('ReactDOMServerHydration', () => {
 
   describe('misc cases', () => {
     // @gate __DEV__
-    it('warns when client renders an extra node deeper in the tree', () => {
+    it('warns when client renders an extra node deeper in the tree', async () => {
       function Mismatch({isClient}) {
         return isClient ? <ProfileSettings /> : <MediaSettings />;
       }
@@ -946,7 +946,7 @@ describe('ReactDOMServerHydration', () => {
         );
       }
 
-      expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+      expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
           [
             "Warning: Expected server HTML to contain a matching <footer> in <div>.
               in footer (at **)
@@ -962,7 +962,7 @@ describe('ReactDOMServerHydration', () => {
     });
 
     // @gate __DEV__
-    it('warns when server renders an extra node deeper in the tree', () => {
+    it('warns when server renders an extra node deeper in the tree', async () => {
       function Mismatch({isClient}) {
         return isClient ? <ProfileSettings /> : <MediaSettings />;
       }
@@ -995,7 +995,7 @@ describe('ReactDOMServerHydration', () => {
         );
       }
 
-      expect(testMismatch(Mismatch)).toMatchInlineSnapshot(`
+      expect(await testMismatch(Mismatch)).toMatchInlineSnapshot(`
           [
             "Warning: Did not expect server HTML to contain a <footer> in <div>.
               in div (at **)

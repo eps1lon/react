@@ -68,7 +68,7 @@ describe('useEditableValue', () => {
     expect(state.isValid).toBe(true);
   });
 
-  it('should not override editable state when external props are updated if there are pending changes', () => {
+  it('should not override editable state when external props are updated if there are pending changes', async () => {
     let dispatch, state;
 
     function Example({value}) {
@@ -87,7 +87,7 @@ describe('useEditableValue', () => {
     expect(state.isValid).toBe(true);
 
     // Update (local) editable state.
-    act(() =>
+    await act(() =>
       dispatch({
         type: 'UPDATE',
         editableValue: '2',
@@ -110,7 +110,7 @@ describe('useEditableValue', () => {
     expect(state.isValid).toBe(true);
   });
 
-  it('should parse edits to ensure valid JSON', () => {
+  it('should parse edits to ensure valid JSON', async () => {
     let dispatch, state;
 
     function Example({value}) {
@@ -129,7 +129,7 @@ describe('useEditableValue', () => {
     expect(state.isValid).toBe(true);
 
     // Update (local) editable state.
-    act(() =>
+    await act(() =>
       dispatch({
         type: 'UPDATE',
         editableValue: '"a',
@@ -143,7 +143,7 @@ describe('useEditableValue', () => {
     expect(state.isValid).toBe(false);
   });
 
-  it('should reset to external value upon request', () => {
+  it('should reset to external value upon request', async () => {
     let dispatch, state;
 
     function Example({value}) {
@@ -162,7 +162,7 @@ describe('useEditableValue', () => {
     expect(state.isValid).toBe(true);
 
     // Update (local) editable state.
-    act(() =>
+    await act(() =>
       dispatch({
         type: 'UPDATE',
         editableValue: '2',
@@ -176,7 +176,7 @@ describe('useEditableValue', () => {
     expect(state.isValid).toBe(true);
 
     // Reset editable state
-    act(() =>
+    await act(() =>
       dispatch({
         type: 'RESET',
         externalValue: 1,
