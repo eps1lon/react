@@ -137,75 +137,6 @@ describe('isomorphic act()', () => {
   });
 
   // @gate __DEV__
-  test('in legacy mode, in an async scope, updates are batched until the first `await`', async () => {
-    const root = ReactNoop.createLegacyRoot();
-
-    await act(async () => {
-      queueMicrotask(() => {
-        Scheduler.log('Current tree in microtask: ' + root.getChildrenAsJSX());
-        root.render(<Text text="C" />);
-      });
-      root.render(<Text text="A" />);
-      root.render(<Text text="B" />);
-
-      await null;
-      assertLog([
-        // A and B should render in a single batch _before_ the microtask queue
-        // has run. This replicates the behavior of the original `act`
-        // implementation, for compatibility.
-        'B',
-        'Current tree in microtask: B',
-
-        // C isn't scheduled until a microtask, so it's rendered separately.
-        'C',
-      ]);
-
-      // Subsequent updates should also render in separate batches.
-      root.render(<Text text="D" />);
-      root.render(<Text text="E" />);
-      assertLog(['D', 'E']);
-    });
-  });
-
-  // @gate __DEV__
-  test('in legacy mode, in an async scope, updates are batched until the first `await` (regression test: batchedUpdates)', async () => {
-    const root = ReactNoop.createLegacyRoot();
-
-    await act(async () => {
-      queueMicrotask(() => {
-        Scheduler.log('Current tree in microtask: ' + root.getChildrenAsJSX());
-        root.render(<Text text="C" />);
-      });
-
-      // This is a regression test. The presence of `batchedUpdates` would cause
-      // these updates to not flush until a microtask. The correct behavior is
-      // that they flush before the microtask queue, regardless of whether
-      // they are wrapped with `batchedUpdates`.
-      ReactNoop.batchedUpdates(() => {
-        root.render(<Text text="A" />);
-        root.render(<Text text="B" />);
-      });
-
-      await null;
-      assertLog([
-        // A and B should render in a single batch _before_ the microtask queue
-        // has run. This replicates the behavior of the original `act`
-        // implementation, for compatibility.
-        'B',
-        'Current tree in microtask: B',
-
-        // C isn't scheduled until a microtask, so it's rendered separately.
-        'C',
-      ]);
-
-      // Subsequent updates should also render in separate batches.
-      root.render(<Text text="D" />);
-      root.render(<Text text="E" />);
-      assertLog(['D', 'E']);
-    });
-  });
-
-  // @gate __DEV__
   test('unwraps promises by yielding to microtasks (async act scope)', async () => {
     const promise = Promise.resolve('Async');
 
@@ -290,61 +221,7 @@ describe('isomorphic act()', () => {
 
     expect(console.error).toHaveBeenCalledTimes(1);
     expect(console.error.mock.calls[0][0]).toContain(
-      'Warning: A component suspended inside an `act` scope, but the `act` ' +
-        'call was not awaited. When testing React components that ' +
-        'depend on asynchronous data, you must await the result:\n\n' +
-        'await act(() => ...)',
+      'Warning: `act` has to be awaited to apply all state updates. You called `act()` without await',
     );
-  });
-
-  // @gate __DEV__
-  test('does not warn when suspending via legacy `throw` API  in non-awaited `act` scope', async () => {
-    let didResolve = false;
-    let resolvePromise;
-    const promise = new Promise(r => {
-      resolvePromise = () => {
-        didResolve = true;
-        r();
-      };
-    });
-
-    function Fallback() {
-      return 'Loading...';
-    }
-
-    function App() {
-      if (!didResolve) {
-        throw promise;
-      }
-      return 'Async';
-    }
-
-    spyOnDev(console, 'error').mockImplementation(() => {});
-    const root = ReactNoop.createRoot();
-    await act(() => {
-      startTransition(() => {
-        root.render(
-          <Suspense fallback={<Fallback />}>
-            <App />
-          </Suspense>,
-        );
-      });
-    });
-    expect(root).toMatchRenderedOutput('Loading...');
-
-    // `act` warns after a few microtasks, instead of a macrotask, so that it's
-    // more likely to be attributed to the correct test case.
-    //
-    // The exact number of microtasks is an implementation detail; just needs
-    // to happen when the microtask queue is flushed.
-    await waitForMicrotasks();
-
-    expect(console.error).toHaveBeenCalledTimes(0);
-
-    // Finish loading the data
-    await act(async () => {
-      resolvePromise();
-    });
-    expect(root).toMatchRenderedOutput('Async');
   });
 });
