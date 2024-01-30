@@ -438,6 +438,62 @@ describe('ReactFlight', () => {
       `);
   });
 
+  // @gate enableBinaryFlight
+  it('can transport buffers', async () => {
+    function ComponentClient({buffers}) {
+      return `
+        ArrayBuffer: ${buffers[0] instanceof ArrayBuffer}
+        length: ${buffers[0].byteLength}
+        content: ${new TextDecoder('utf-8').decode(buffers[0])}
+        Int8Array: ${buffers[1] instanceof Int8Array}
+        length: ${buffers[1].byteLength}
+        content: ${new TextDecoder('utf-8').decode(buffers[1])}
+        Uint8Array: ${buffers[2] instanceof Uint8Array}
+        length: ${buffers[2].byteLength}
+        content: ${new TextDecoder('utf-8').decode(buffers[2])}
+      `;
+    }
+    const Component = clientReference(ComponentClient);
+
+    const buffer = new Uint8Array([
+      123, 4, 10, 5, 100, 255, 244, 45, 56, 67, 43, 124, 67, 89, 100, 20,
+    ]).buffer;
+    const buffers = [
+      buffer,
+      new Int8Array(buffer, 1),
+      new Uint8Array(buffer, 2),
+      new Uint8ClampedArray(buffer, 2),
+      new Int16Array(buffer, 2),
+      new Uint16Array(buffer, 2),
+      new Int32Array(buffer, 4),
+      new Uint32Array(buffer, 4),
+      new Float32Array(buffer, 4),
+      new Float64Array(buffer, 0),
+      new BigInt64Array(buffer, 0),
+      new BigUint64Array(buffer, 0),
+      new DataView(buffer, 3),
+    ];
+    const model = <Component buffers={buffers} />;
+
+    const transport = ReactNoopFlightServer.render(model);
+
+    await act(async () => {
+      ReactNoop.render(await ReactNoopFlightClient.read(transport));
+    });
+
+    expect(ReactNoop).toMatchRenderedOutput(`
+        ArrayBuffer: true
+        length: 16
+        content: 1
+        Int8Array: true
+        length: 2
+        content: 1
+        Uint8Array: true
+        length: 2
+        content: 1
+      `);
+  });
+
   it('can transport cyclic objects', async () => {
     function ComponentClient({prop}) {
       expect(prop.obj.obj.obj).toBe(prop.obj.obj);

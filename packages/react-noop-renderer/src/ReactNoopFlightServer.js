@@ -20,8 +20,12 @@ import type {ServerContextJSONValue} from 'shared/ReactTypes';
 import {saveModule} from 'react-noop-renderer/flight-modules';
 
 import ReactFlightServer from 'react-server/flight';
+import {enableBinaryFlight} from 'shared/ReactFeatureFlags';
 
 type Destination = Array<Uint8Array>;
+
+export opaque type Chunk = string;
+export type BinaryChunk = Uint8Array;
 
 const textEncoder = new TextEncoder();
 
@@ -30,10 +34,13 @@ const ReactNoopFlightServer = ReactFlightServer({
     callback();
   },
   beginWriting(destination: Destination): void {},
-  writeChunk(destination: Destination, chunk: string): void {
+  writeChunk(destination: Destination, chunk: Chunk | BinaryChunk): void {
     destination.push(chunk);
   },
-  writeChunkAndReturn(destination: Destination, chunk: string): boolean {
+  writeChunkAndReturn(
+    destination: Destination,
+    chunk: Chunk | BinaryChunk,
+  ): boolean {
     destination.push(chunk);
     return true;
   },
@@ -66,6 +73,25 @@ const ReactNoopFlightServer = ReactFlightServer({
     return saveModule(reference.value);
   },
   prepareHostDispatcher() {},
+  typedArrayToBinaryChunk(content: $ArrayBufferView) {
+    if (enableBinaryFlight) {
+      // Convert any non-Uint8Array array to Uint8Array. We could avoid this for Uint8Arrays.
+      return new Uint8Array(
+        content.buffer,
+        content.byteOffset,
+        content.byteLength,
+      );
+    } else {
+      throw new Error('Not supported');
+    }
+  },
+  byteLengthOfBinaryChunk(chunk: BinaryChunk): number {
+    if (enableBinaryFlight) {
+      return chunk.byteLength;
+    } else {
+      throw new Error('Not supported');
+    }
+  },
 });
 
 type Options = {
