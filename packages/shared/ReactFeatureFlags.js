@@ -159,11 +159,6 @@ export const disableIEWorkarounds = __NEXT_MAJOR__;
 // https://github.com/facebook/react/issues/11347
 export const enableCustomElementPropertySupport = __NEXT_MAJOR__;
 
-// Filter certain DOM attributes (e.g. src, href) if their values are empty
-// strings. This prevents e.g. <img src=""> from making an unnecessary HTTP
-// request for certain browsers.
-export const enableFilterEmptyStringAttributesDOM = __NEXT_MAJOR__;
-
 // -----------------------------------------------------------------------------
 // Chopping Block
 //

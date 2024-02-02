@@ -71,7 +71,6 @@ import {
   enableFormActions,
   disableIEWorkarounds,
   enableTrustedTypesIntegration,
-  enableFilterEmptyStringAttributesDOM,
 } from 'shared/ReactFeatureFlags';
 import {
   mediaEventTypes,
@@ -433,35 +432,33 @@ function setProp(
     // These attributes accept URLs. These must not allow javascript: URLS.
     case 'src':
     case 'href': {
-      if (enableFilterEmptyStringAttributesDOM) {
-        if (
-          value === '' &&
-          // <a href=""> is fine for "reload" links.
-          !(tag === 'a' && key === 'href')
-        ) {
-          if (__DEV__) {
-            if (key === 'src') {
-              console.error(
-                'An empty string ("") was passed to the %s attribute. ' +
-                  'This may cause the browser to download the whole page again over the network. ' +
-                  'To fix this, either do not render the element at all ' +
-                  'or pass null to %s instead of an empty string.',
-                key,
-                key,
-              );
-            } else {
-              console.error(
-                'An empty string ("") was passed to the %s attribute. ' +
-                  'To fix this, either do not render the element at all ' +
-                  'or pass null to %s instead of an empty string.',
-                key,
-                key,
-              );
-            }
+      if (
+        value === '' &&
+        // <a href=""> is fine for "reload" links.
+        !(tag === 'a' && key === 'href')
+      ) {
+        if (__DEV__) {
+          if (key === 'src') {
+            console.error(
+              'An empty string ("") was passed to the %s attribute. ' +
+                'This may cause the browser to download the whole page again over the network. ' +
+                'To fix this, either do not render the element at all ' +
+                'or pass null to %s instead of an empty string.',
+              key,
+              key,
+            );
+          } else {
+            console.error(
+              'An empty string ("") was passed to the %s attribute. ' +
+                'To fix this, either do not render the element at all ' +
+                'or pass null to %s instead of an empty string.',
+              key,
+              key,
+            );
           }
-          domElement.removeAttribute(key);
-          break;
         }
+        domElement.removeAttribute(key);
+        break;
       }
       if (
         value == null ||
@@ -2353,41 +2350,39 @@ function diffHydratedGenericElement(
       }
       case 'src':
       case 'href':
-        if (enableFilterEmptyStringAttributesDOM) {
-          if (
-            value === '' &&
-            // <a href=""> is fine for "reload" links.
-            !(tag === 'a' && propKey === 'href')
-          ) {
-            if (__DEV__) {
-              if (propKey === 'src') {
-                console.error(
-                  'An empty string ("") was passed to the %s attribute. ' +
-                    'This may cause the browser to download the whole page again over the network. ' +
-                    'To fix this, either do not render the element at all ' +
-                    'or pass null to %s instead of an empty string.',
-                  propKey,
-                  propKey,
-                );
-              } else {
-                console.error(
-                  'An empty string ("") was passed to the %s attribute. ' +
-                    'To fix this, either do not render the element at all ' +
-                    'or pass null to %s instead of an empty string.',
-                  propKey,
-                  propKey,
-                );
-              }
+        if (
+          value === '' &&
+          // <a href=""> is fine for "reload" links.
+          !(tag === 'a' && propKey === 'href')
+        ) {
+          if (__DEV__) {
+            if (propKey === 'src') {
+              console.error(
+                'An empty string ("") was passed to the %s attribute. ' +
+                  'This may cause the browser to download the whole page again over the network. ' +
+                  'To fix this, either do not render the element at all ' +
+                  'or pass null to %s instead of an empty string.',
+                propKey,
+                propKey,
+              );
+            } else {
+              console.error(
+                'An empty string ("") was passed to the %s attribute. ' +
+                  'To fix this, either do not render the element at all ' +
+                  'or pass null to %s instead of an empty string.',
+                propKey,
+                propKey,
+              );
             }
-            hydrateSanitizedAttribute(
-              domElement,
-              propKey,
-              propKey,
-              null,
-              extraAttributes,
-            );
-            continue;
           }
+          hydrateSanitizedAttribute(
+            domElement,
+            propKey,
+            propKey,
+            null,
+            extraAttributes,
+          );
+          continue;
         }
         hydrateSanitizedAttribute(
           domElement,

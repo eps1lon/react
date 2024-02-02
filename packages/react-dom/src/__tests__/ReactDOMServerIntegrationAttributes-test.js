@@ -57,13 +57,8 @@ describe('ReactDOMServerIntegration', () => {
       });
 
       itRenders('empty src on img', async render => {
-        const e = await render(
-          <img src="" />,
-          ReactFeatureFlags.enableFilterEmptyStringAttributesDOM ? 1 : 0,
-        );
-        expect(e.getAttribute('src')).toBe(
-          ReactFeatureFlags.enableFilterEmptyStringAttributesDOM ? null : '',
-        );
+        const e = await render(<img src="" />, 1);
+        expect(e.getAttribute('src')).toBe(null);
       });
 
       itRenders('empty href on anchor', async render => {
@@ -81,11 +76,9 @@ describe('ReactDOMServerIntegration', () => {
           // errors during hydration.
           // So we use a <div> instead.
           <div href="" />,
-          ReactFeatureFlags.enableFilterEmptyStringAttributesDOM ? 1 : 0,
+          1,
         );
-        expect(e.getAttribute('href')).toBe(
-          ReactFeatureFlags.enableFilterEmptyStringAttributesDOM ? null : '',
-        );
+        expect(e.getAttribute('href')).toBe(null);
       });
 
       itRenders('no string prop with true value', async render => {
