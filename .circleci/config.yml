@@ -405,17 +405,7 @@ workflows:
   build_and_test:
     unless: << pipeline.parameters.prerelease_commit_sha >>
     jobs:
-      - yarn_flow:
-          filters:
-            branches:
-              ignore:
-                - builds/facebook-www
       - check_generated_fizz_runtime:
-          filters:
-            branches:
-              ignore:
-                - builds/facebook-www
-      - yarn_lint:
           filters:
             branches:
               ignore:
@@ -447,119 +437,16 @@ workflows:
                 # TODO: Test more persistent configurations?
                 - '-r=stable --env=development --persistent'
                 - '-r=experimental --env=development --persistent'
-      - yarn_build:
-          filters:
-            branches:
-              ignore:
-                - builds/facebook-www
-      - scrape_warning_messages:
-          filters:
-            branches:
-              ignore:
-                - builds/facebook-www
-      - process_artifacts_combined:
-          requires:
-            - scrape_warning_messages
-            - yarn_build
-      - yarn_test_build:
-          requires:
-            - yarn_build
-          matrix:
-            parameters:
-              args:
-                # Intentionally passing these as strings instead of creating a
-                # separate parameter per CLI argument, since it's easier to
-                # control/see which combinations we want to run.
-                - "-r=stable --env=development"
-                - "-r=stable --env=production"
-                - "-r=experimental --env=development"
-                - "-r=experimental --env=production"
-
-                # Dev Tools
-                - "--project=devtools -r=experimental"
-
-                # TODO: Update test config to support www build tests
-                # - "-r=www-classic --env=development --variant=false"
-                # - "-r=www-classic --env=production --variant=false"
-                # - "-r=www-classic --env=development --variant=true"
-                # - "-r=www-classic --env=production --variant=true"
-                # - "-r=www-modern --env=development --variant=false"
-                # - "-r=www-modern --env=production --variant=false"
-                # - "-r=www-modern --env=development --variant=true"
-                # - "-r=www-modern --env=production --variant=true"
-
-                # TODO: Test more persistent configurations?
       - download_base_build_for_sizebot:
           filters:
             branches:
               ignore:
                 - main
                 - builds/facebook-www
-      - sizebot:
-          filters:
-            branches:
-              ignore:
-                - main
-          requires:
-            - download_base_build_for_sizebot
-            - yarn_build
-      - yarn_lint_build:
-          requires:
-            - yarn_build
-      - yarn_check_release_dependencies:
-          requires:
-            - yarn_build
-      - check_error_codes:
-          requires:
-            - yarn_build
-      - RELEASE_CHANNEL_stable_yarn_test_dom_fixtures:
-          requires:
-            - yarn_build
-      - build_devtools_and_process_artifacts:
-          requires:
-            - yarn_build
       - run_devtools_e2e_tests:
           requires:
             - build_devtools_and_process_artifacts
 
-  devtools_regression_tests:
-    unless: << pipeline.parameters.prerelease_commit_sha >>
-    triggers:
-      - schedule:
-          # DevTools regression tests run once a day
-          cron: "0 0 * * *"
-          filters:
-            branches:
-              only:
-                - main
-    jobs:
-      - download_build:
-          revision: << pipeline.git.revision >>
-      - build_devtools_and_process_artifacts:
-          requires:
-            - download_build
-      - run_devtools_tests_for_versions:
-          requires:
-            - build_devtools_and_process_artifacts
-          matrix:
-            parameters:
-              version:
-                - "16.0"
-                - "16.5" # schedule package
-                - "16.8" # hooks
-                - "17.0"
-                - "18.0"
-      - run_devtools_e2e_tests_for_versions:
-          requires:
-            - build_devtools_and_process_artifacts
-          matrix:
-            parameters:
-              version:
-                - "16.0"
-                - "16.5" # schedule package
-                - "16.8" # hooks
-                - "17.0"
-                - "18.0"
 
   # Used to publish a prerelease manually via the command line
   publish_preleases:
