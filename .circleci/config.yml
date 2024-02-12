@@ -443,9 +443,6 @@ workflows:
               ignore:
                 - main
                 - builds/facebook-www
-      - run_devtools_e2e_tests:
-          requires:
-            - build_devtools_and_process_artifacts
 
 
   # Used to publish a prerelease manually via the command line
