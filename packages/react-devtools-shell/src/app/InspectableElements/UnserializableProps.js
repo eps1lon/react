@@ -57,6 +57,10 @@ export default function UnserializableProps(): React.Node {
   );
 }
 
-function ChildComponent(props: any) {
-  return null;
+function ChildComponent({bigint}: any) {
+  return (
+    <>
+      <div>{bigint}</div>
+    </>
+  );
 }
