@@ -326,7 +326,7 @@ function normalizeMarkupForTextOrAttribute(markup: mixed): string {
 
 export function checkForUnmatchedText(
   serverText: string,
-  clientText: string | number,
+  clientText: string | number | bigint,
   isConcurrentMode: boolean,
   shouldWarnDev: boolean,
 ) {
@@ -399,10 +399,12 @@ function setProp(
         }
       } else if (typeof value === 'number' || typeof value === 'bigint') {
         if (__DEV__) {
+          // $FlowFixMe[unsafe-addition] Flow doesn't want us to use `+` operator with string and bigint
           validateTextNesting('' + value, tag);
         }
         const canSetTextContent = tag !== 'body';
         if (canSetTextContent) {
+          // $FlowFixMe[unsafe-addition] Flow doesn't want us to use `+` operator with string and bigint
           setTextContent(domElement, '' + value);
         }
       }
@@ -954,6 +956,7 @@ function setPropOnCustomElement(
       if (typeof value === 'string') {
         setTextContent(domElement, value);
       } else if (typeof value === 'number' || typeof value === 'bigint') {
+        // $FlowFixMe[unsafe-addition] Flow doesn't want us to use `+` operator with string and bigint
         setTextContent(domElement, '' + value);
       }
       break;
@@ -2817,6 +2820,7 @@ export function diffHydratedProperties(
     typeof children === 'number' ||
     typeof children === 'bigint'
   ) {
+    // $FlowFixMe[unsafe-addition] Flow doesn't want us to use `+` operator with string and bigint
     if (domElement.textContent !== '' + children) {
       if (props.suppressHydrationWarning !== true) {
         checkForUnmatchedText(

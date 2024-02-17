@@ -565,6 +565,7 @@ function createChildReconciler(
       // we can continue to replace it without aborting even if it is not a text
       // node.
       const created = createFiberFromText(
+        // $FlowFixMe[unsafe-addition] Flow doesn't want us to use `+` operator with string and bigint
         '' + newChild,
         returnFiber.mode,
         lanes,
@@ -688,6 +689,7 @@ function createChildReconciler(
       return updateTextNode(
         returnFiber,
         oldFiber,
+        // $FlowFixMe[unsafe-addition] Flow doesn't want us to use `+` operator with string and bigint
         '' + newChild,
         lanes,
         debugInfo,
@@ -806,6 +808,7 @@ function createChildReconciler(
       return updateTextNode(
         returnFiber,
         matchedFiber,
+        // $FlowFixMe[unsafe-addition] Flow doesn't want us to use `+` operator with string and bigint
         '' + newChild,
         lanes,
         debugInfo,
@@ -1617,6 +1620,7 @@ function createChildReconciler(
         reconcileSingleTextNode(
           returnFiber,
           currentFirstChild,
+          // $FlowFixMe[unsafe-addition] Flow doesn't want us to use `+` operator with string and bigint
           '' + newChild,
           lanes,
         ),
