@@ -1625,7 +1625,8 @@ function flattenOptionChildren(children: mixed): string {
       if (
         !didWarnInvalidOptionChildren &&
         typeof child !== 'string' &&
-        typeof child !== 'number'
+        typeof child !== 'number' &&
+        typeof child !== 'bigint'
       ) {
         didWarnInvalidOptionChildren = true;
         console.error(
