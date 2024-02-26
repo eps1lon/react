@@ -38,7 +38,6 @@ export const {
   useModernStrictMode,
   enableRefAsProp,
   enableClientRenderFallbackOnTextMismatch,
-  enableBigIntSupport,
 } = dynamicFeatureFlags;
 
 // On WWW, __EXPERIMENTAL__ is used for a new modern build.
@@ -119,6 +118,8 @@ export const enableServerComponentKeys = true;
 export const enableServerComponentLogs = true;
 
 export const enableReactTestRendererWarning = false;
+
+export const enableBigIntSupport = true;
 
 // Flow magic to verify the exports of this file match the original version.
 ((((null: any): ExportsType): FeatureFlagsType): ExportsType);
