@@ -27,7 +27,7 @@ function sleep(period) {
   });
 }
 
-describe('ReactTestUtils.act()', () => {
+describe('React.act()', () => {
   afterEach(() => {
     jest.restoreAllMocks();
   });
@@ -78,6 +78,26 @@ describe('ReactTestUtils.act()', () => {
   });
 });
 
+describe('ReactTestUtils.act', () => {
+  beforeEach(() => {
+    jest.resetModules();
+    React = require('react');
+    ReactTestUtils = require('react-dom/test-utils');
+  });
+
+  it('warns if used from react-dom/test-utils', () => {
+    React.act(() => {});
+
+    expect(() => {
+      ReactTestUtils.act(() => {});
+    }).toErrorDev(
+      "Warning: `act` from 'react-dom/test-utils' is deprecated. " +
+        "Use `act` from 'react' instead e.g. `import {act} from 'react'`.",
+      {withoutStack: true},
+    );
+  });
+});
+
 function runActTests(render, unmount, rerender) {
   describe('concurrent render', () => {
     beforeEach(() => {
@@ -86,7 +106,7 @@ function runActTests(render, unmount, rerender) {
       ReactDOMClient = require('react-dom/client');
       ReactTestUtils = require('react-dom/test-utils');
       Scheduler = require('scheduler');
-      act = ReactTestUtils.act;
+      act = React.act;
 
       const InternalTestUtils = require('internal-test-utils');
       assertLog = InternalTestUtils.assertLog;

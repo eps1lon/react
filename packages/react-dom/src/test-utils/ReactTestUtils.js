@@ -7,9 +7,21 @@
 
 import * as React from 'react';
 
-// TODO: Add a warning if this API is accessed with advice to switch to
-// importing directly from the React package instead.
-const act = React.act;
+let didWarnAboutActUsage = false;
+
+function act(scope) {
+  if (__DEV__) {
+    if (!didWarnAboutActUsage) {
+      didWarnAboutActUsage = true;
+      console.error(
+        "`act` from 'react-dom/test-utils' is deprecated. " +
+          "Use `act` from 'react' instead e.g. `import {act} from 'react'`.",
+      );
+    }
+  }
+
+  return React.act(scope);
+}
 
 function makeRemovedFunction(name) {
   return function () {
