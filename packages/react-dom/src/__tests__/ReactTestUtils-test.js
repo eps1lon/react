@@ -12,8 +12,21 @@
 import * as ReactTestUtils from 'react-dom/test-utils';
 
 describe('ReactTestUtils', () => {
-  it('only contains act', async () => {
+  it('contains act', async () => {
     expect(typeof ReactTestUtils.act).toBe('function');
-    expect(ReactTestUtils.isDOMComponent).toBe(undefined);
+  });
+
+  it('throws on every removed function with a special message', async () => {
+    expect(ReactTestUtils.isDOMComponent).toThrowError(
+      '`isDOMComponent` was removed from `react-dom/test-utils`. ' +
+        'For testing React, we recommend React Testing Library instead: https://testing-library.com/docs/react-testing-library/intro.',
+    );
+  });
+
+  it('Simulate throws with a message recommending the relevant React Testing Library API', async () => {
+    expect(ReactTestUtils.Simulate.click).toThrowError(
+      '`Simulate` was removed from `react-dom/test-utils`. ' +
+        'For testing events, we recommend `fireEvent.click` from `@testing-library/react` instead: https://testing-library.com/docs/dom-testing-library/api-events/.',
+    );
   });
 });
