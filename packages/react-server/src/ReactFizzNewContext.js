@@ -25,6 +25,8 @@ type ContextNode<T> = {
   context: ReactContext<T>,
   parentValue: T,
   value: T,
+  // DEV only
+  parentRendererSigil?: Object | null,
 };
 
 // The structure of a context snapshot is an implementation of this file.
@@ -181,6 +183,7 @@ export function pushProvider<T>(
   context: ReactContext<T>,
   nextValue: T,
 ): ContextSnapshot {
+  let prevRendererSigil;
   let prevValue;
   if (isPrimaryRenderer) {
     prevValue = context._currentValue;
@@ -196,6 +199,7 @@ export function pushProvider<T>(
             'same context provider. This is currently unsupported.',
         );
       }
+      prevRendererSigil = context._currentRenderer;
       context._currentRenderer = rendererSigil;
     }
   } else {
@@ -212,6 +216,7 @@ export function pushProvider<T>(
             'same context provider. This is currently unsupported.',
         );
       }
+      prevRendererSigil = context._currentRenderer2;
       context._currentRenderer2 = rendererSigil;
     }
   }
@@ -223,6 +228,10 @@ export function pushProvider<T>(
     parentValue: prevValue,
     value: nextValue,
   };
+  if (__DEV__) {
+    newNode.parentRendererSigil = prevRendererSigil;
+  }
+
   currentActiveSnapshot = newNode;
   return newNode;
 }
@@ -257,7 +266,8 @@ export function popProvider<T>(context: ReactContext<T>): ContextSnapshot {
             'same context provider. This is currently unsupported.',
         );
       }
-      context._currentRenderer = rendererSigil;
+      const prevRendererSigil = prevSnapshot.parentRendererSigil;
+      context._currentRenderer = prevRendererSigil;
     }
   } else {
     const value = prevSnapshot.parentValue;
@@ -273,7 +283,8 @@ export function popProvider<T>(context: ReactContext<T>): ContextSnapshot {
             'same context provider. This is currently unsupported.',
         );
       }
-      context._currentRenderer2 = rendererSigil;
+      const nextRendererSigil = prevSnapshot.parentRendererSigil;
+      context._currentRenderer2 = nextRendererSigil;
     }
   }
   return (currentActiveSnapshot = prevSnapshot.parent);

@@ -972,8 +972,11 @@ describe('ReactNewContext', () => {
             'context provider. This is currently unsupported',
           {withoutStack: true},
         ],
-        'Detected multiple renderers concurrently rendering the same ' +
-          'context provider. This is currently unsupported',
+        [
+          'Detected multiple renderers concurrently rendering the same ' +
+            'context provider. This is currently unsupported',
+          {withoutStack: true},
+        ],
       ]);
     });
 
@@ -1047,10 +1050,6 @@ describe('ReactNewContext', () => {
       result = ReactNoopServer.render(<App value={2} />);
       assertLog(['Foo', 'Foo']);
       expect(result.root).toEqual({text: '2', hidden: false});
-      assertConsoleErrorDev([
-        'Detected multiple renderers concurrently rendering the same ' +
-          'context provider. This is currently unsupported',
-      ]);
     });
 
     it('provider bails out if children and value are unchanged (like sCU)', async () => {
