@@ -12,7 +12,10 @@
 let React = require('react');
 let useContext;
 let ReactNoop;
+let ReactNoopServer;
 let Scheduler;
+let assertConsoleErrorDev;
+let assertLog;
 let gen;
 let waitForAll;
 let waitFor;
@@ -25,10 +28,13 @@ describe('ReactNewContext', () => {
     React = require('react');
     useContext = React.useContext;
     ReactNoop = require('react-noop-renderer');
+    ReactNoopServer = require('react-noop-renderer/server');
     Scheduler = require('scheduler');
     gen = require('random-seed');
 
     const InternalTestUtils = require('internal-test-utils');
+    assertConsoleErrorDev = InternalTestUtils.assertConsoleErrorDev;
+    assertLog = InternalTestUtils.assertLog;
     waitForAll = InternalTestUtils.waitForAll;
     waitFor = InternalTestUtils.waitFor;
     waitForThrow = InternalTestUtils.waitForThrow;
@@ -911,8 +917,67 @@ describe('ReactNewContext', () => {
       }
     });
 
+    it('warns if multiple server renderers concurrently render the same context', async () => {
+      const Context = React.createContext(0);
+
+      // Get a new copy of ReactNoop
+      jest.resetModules();
+      const React2 = require('react');
+      const ReactNoopServer2 = require('react-noop-renderer/server');
+      Scheduler = require('scheduler');
+      const InternalTestUtils = require('internal-test-utils');
+      assertConsoleErrorDev = InternalTestUtils.assertConsoleErrorDev;
+      assertLog = InternalTestUtils.assertLog;
+
+      function ContextValue() {
+        Scheduler.log('ContextValue');
+        const value = React2.useContext(Context);
+        return value;
+      }
+
+      function SecondaryRenderer(props) {
+        Scheduler.log('SecondaryRenderer');
+        const value = React.useContext(Context);
+        const {root} = ReactNoopServer2.render(
+          <Context.Provider value={value + 1}>
+            <ContextValue />
+            <ContextValue />
+          </Context.Provider>,
+        );
+
+        return JSON.stringify(root, null, 2);
+      }
+
+      function App(props) {
+        return (
+          <Context.Provider value={props.value}>
+            <SecondaryRenderer />
+            <SecondaryRenderer />
+          </Context.Provider>
+        );
+      }
+
+      ReactNoopServer.render(<App value={1} />);
+      assertLog([
+        'SecondaryRenderer',
+        'ContextValue',
+        'ContextValue',
+        'SecondaryRenderer',
+        'ContextValue',
+        'ContextValue',
+      ]);
+      assertConsoleErrorDev([
+        [
+          'Detected multiple renderers concurrently rendering the same ' +
+            'context provider. This is currently unsupported',
+          {withoutStack: true},
+        ],
+        'Detected multiple renderers concurrently rendering the same ' +
+          'context provider. This is currently unsupported',
+      ]);
+    });
+
     it('does not warn if multiple renderers use the same context sequentially', async () => {
-      spyOnDev(console, 'error');
       const Context = React.createContext(0);
 
       function Foo(props) {
@@ -946,10 +1011,46 @@ describe('ReactNewContext', () => {
       // Render the provider again using a different renderer
       ReactNoop.render(<App value={1} />);
       await waitForAll(['Foo', 'Foo']);
+    });
 
-      if (__DEV__) {
-        expect(console.error).not.toHaveBeenCalled();
+    it('does not warn if multiple server renderers use the same context sequentially', async () => {
+      const Context = React.createContext(0);
+
+      function Foo(props) {
+        Scheduler.log('Foo');
+        return React.useContext(Context);
       }
+
+      function App(props) {
+        return (
+          <Context.Provider value={props.value}>
+            <Foo />
+            <Foo />
+          </Context.Provider>
+        );
+      }
+
+      let result = ReactNoopServer.render(<App value={1} />);
+      assertLog(['Foo', 'Foo']);
+      expect(result.root).toEqual({text: '1', hidden: false});
+
+      // Get a new copy of ReactNoop
+      jest.resetModules();
+      React = require('react');
+      ReactNoopServer = require('react-noop-renderer/server');
+      Scheduler = require('scheduler');
+      const InternalTestUtils = require('internal-test-utils');
+      assertConsoleErrorDev = InternalTestUtils.assertConsoleErrorDev;
+      assertLog = InternalTestUtils.assertLog;
+
+      // Render the provider again using a different renderer
+      result = ReactNoopServer.render(<App value={2} />);
+      assertLog(['Foo', 'Foo']);
+      expect(result.root).toEqual({text: '2', hidden: false});
+      assertConsoleErrorDev([
+        'Detected multiple renderers concurrently rendering the same ' +
+          'context provider. This is currently unsupported',
+      ]);
     });
 
     it('provider bails out if children and value are unchanged (like sCU)', async () => {
