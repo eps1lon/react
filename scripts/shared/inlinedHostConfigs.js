@@ -443,10 +443,7 @@ module.exports = [
   },
   {
     shortName: 'markup',
-    entryPoints: [
-      'react-markup/src/ReactMarkupClient.js', // react-markup
-      'react-markup/src/ReactMarkupServer.js', // react-markup/react-markup.react-server
-    ],
+    entryPoints: ['react-markup', 'react-markup/react-markup.react-server.js'],
     paths: [
       'react-dom',
       'react-dom/src/ReactDOMReactServer.js',

@@ -367,7 +367,7 @@ const bundles = [
   {
     bundleTypes: __EXPERIMENTAL__ ? [NODE_DEV, NODE_PROD] : [],
     moduleType: RENDERER,
-    entry: 'react-markup/src/ReactMarkupServer.js',
+    entry: 'react-markup',
     name: 'react-markup.react-server',
     condition: 'react-server',
     global: 'ReactMarkup',
@@ -380,7 +380,7 @@ const bundles = [
   {
     bundleTypes: __EXPERIMENTAL__ ? [NODE_DEV, NODE_PROD] : [],
     moduleType: RENDERER,
-    entry: 'react-markup/src/ReactMarkupClient.js',
+    entry: 'react-markup',
     name: 'react-markup',
     global: 'ReactMarkup',
     minifyWithProdErrorCodes: false,

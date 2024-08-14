@@ -115,6 +115,9 @@ const forks = Object.freeze({
     }
     if (
       !entry.startsWith('react-dom/') &&
+      // react-dom is not an external in react-markup so i.e. bundles it so it's fine to reference.
+      // TODO: Make sure we distinguish between externals (that require being listed as a dependency and bundled dependency)
+      !entry.startsWith('react-markup') &&
       dependencies.indexOf('react-dom') === -1
     ) {
       // React DOM internals are unavailable if we can't reference the package.
