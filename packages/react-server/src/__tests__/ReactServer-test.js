@@ -65,6 +65,7 @@ describe('ReactServer', () => {
       {
         onError: (error, errorInfo) => {
           caughtError = error;
+          console.log(errorInfo.blockedReason)
           componentStack = errorInfo.componentStack;
           ownerStack = __DEV__ ? React.captureOwnerStack() : null;
         },

@@ -188,7 +188,11 @@ import assign from 'shared/assign';
 import noop from 'shared/noop';
 import getComponentNameFromType from 'shared/getComponentNameFromType';
 import isArray from 'shared/isArray';
-import {SuspenseException, getSuspendedThenable} from './ReactFizzThenable';
+import {
+  SuspenseException,
+  getSuspendReason,
+  getSuspendedThenable,
+} from './ReactFizzThenable';
 import type {Postpone} from 'react/src/ReactPostpone';
 
 // Linked list representing the identity of a component given the component/tag name and key.
@@ -285,6 +289,7 @@ type RenderTask = {
   thenableState: null | ThenableState,
   legacyContext: LegacyContext, // the current legacy context that this task is executing in
   debugTask: null | ConsoleTask, // DEV only
+  blockedReason: null | Error,
   // DON'T ANY MORE FIELDS. We at 16 in prod already which otherwise requires converting to a constructor.
   // Consider splitting into multiple objects or consolidating some fields.
 };
@@ -1050,7 +1055,7 @@ function createComponentStackFromType(
 type ThrownInfo = {
   componentStack?: string,
 };
-export type ErrorInfo = ThrownInfo;
+export type ErrorInfo = ThrownInfo & {blockedReason?: null | Error};
 export type PostponeInfo = ThrownInfo;
 
 function getThrownInfo(node: null | ComponentStackNode): ThrownInfo {
@@ -4114,6 +4119,9 @@ function renderNode(
             // later, once we deprecate the old API in favor of `use`.
             getSuspendedThenable()
           : thrownValue;
+      if (thrownValue === SuspenseException) {
+        task.blockedReason = getSuspendReason();
+      }
 
       if (typeof x === 'object' && x !== null) {
         // $FlowFixMe[method-unbinding]
@@ -4205,6 +4213,9 @@ function renderNode(
             // later, once we deprecate the old API in favor of `use`.
             getSuspendedThenable()
           : thrownValue;
+      if (thrownValue === SuspenseException) {
+        task.blockedReason = getSuspendReason();
+      }
 
       if (typeof x === 'object' && x !== null) {
         // $FlowFixMe[method-unbinding]
@@ -4578,6 +4589,9 @@ function abortTask(task: Task, request: Request, error: mixed): void {
   }
 
   const errorInfo = getThrownInfo(task.componentStack);
+  if (__DEV__) {
+    errorInfo.blockedReason = task.blockedReason;
+  }
 
   if (boundary === null) {
     if (request.status !== CLOSING && request.status !== CLOSED) {
@@ -5109,6 +5123,9 @@ function retryRenderTask(
         : request.status === ABORTING
           ? request.fatalError
           : thrownValue;
+    if (thrownValue === SuspenseException) {
+      task.blockedReason = getSuspendReason();
+    }
 
     if (
       enableHalt &&

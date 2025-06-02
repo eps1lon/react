@@ -126,6 +126,9 @@ export function trackUsedThenable<T>(
       // get captured by the work loop, log a warning, because that means
       // something in userspace must have caught it.
       suspendedThenable = thenable;
+      if (__DEV__) {
+        suspendReason = new Error('Use of unresolved thenable.');
+      }
       throw SuspenseException;
     }
   }
@@ -162,4 +165,21 @@ export function getSuspendedThenable(): Thenable<mixed> {
   const thenable = suspendedThenable;
   suspendedThenable = null;
   return thenable;
+}
+
+let suspendReason: Error | null;
+export function getSuspendReason(): Error {
+  // This is called right after `use` suspends by throwing an exception. `use`
+  // throws an opaque value instead of the thenable itself so that it can't be
+  // caught in userspace. Then the work loop accesses the actual thenable using
+  // this function.
+  if (suspendReason === null) {
+    throw new Error(
+      'Expected a suspended thenable. This is a bug in React. Please file ' +
+        'an issue.',
+    );
+  }
+  const reason = suspendReason;
+  suspendReason = null;
+  return reason;
 }
