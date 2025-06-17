@@ -1688,30 +1688,6 @@ function renderClientElement(
 // a nested context, we need to first outline.
 let canEmitDebugInfo: boolean = false;
 
-// Approximate string length of the currently serializing row.
-// Used to power outlining heuristics.
-let serializedSize = 0;
-const MAX_ROW_SIZE = 3200;
-
-function deferTask(request: Request, task: Task): ReactJSONValue {
-  // Like outlineTask but instead the item is scheduled to be serialized
-  // after its parent in the stream.
-  const newTask = createTask(
-    request,
-    task.model, // the currently rendering element
-    task.keyPath, // unlike outlineModel this one carries along context
-    task.implicitSlot,
-    request.abortableTasks,
-    enableProfilerTimer && enableComponentPerformanceTrack ? task.time : 0,
-    __DEV__ ? task.debugOwner : null,
-    __DEV__ ? task.debugStack : null,
-    __DEV__ ? task.debugTask : null,
-  );
-
-  pingTask(request, newTask);
-  return serializeLazyID(newTask.id);
-}
-
 function outlineTask(request: Request, task: Task): ReactJSONValue {
   const newTask = createTask(
     request,
@@ -2590,9 +2566,6 @@ function renderModel(
   key: string,
   value: ReactClientValue,
 ): ReactJSONValue {
-  // First time we're serializing the key, we should add it to the size.
-  serializedSize += key.length;
-
   const prevKeyPath = task.keyPath;
   const prevImplicitSlot = task.implicitSlot;
   try {
@@ -2759,10 +2732,6 @@ function renderModelDestructive(
 
         const element: ReactElement = (value: any);
 
-        if (serializedSize > MAX_ROW_SIZE) {
-          return deferTask(request, task);
-        }
-
         if (__DEV__) {
           const debugInfo: ?ReactDebugInfo = (value: any)._debugInfo;
           if (debugInfo) {
@@ -2821,10 +2790,6 @@ function renderModelDestructive(
         return newChild;
       }
       case REACT_LAZY_TYPE: {
-        if (serializedSize > MAX_ROW_SIZE) {
-          return deferTask(request, task);
-        }
-
         // Reset the task's thenable state before continuing. If there was one, it was
         // from suspending the lazy before.
         task.thenableState = null;
@@ -3136,7 +3101,6 @@ function renderModelDestructive(
         throwTaintViolation(tainted.message);
       }
     }
-    serializedSize += value.length;
     // TODO: Maybe too clever. If we support URL there's no similar trick.
     if (value[value.length - 1] === 'Z') {
       // Possibly a Date, whose toJSON automatically calls toISOString
@@ -4564,11 +4528,6 @@ function retryTask(request: Request, task: Task): void {
   const prevCanEmitDebugInfo = canEmitDebugInfo;
   task.status = RENDERING;
 
-  // We stash the outer parent size so we can restore it when we exit.
-  const parentSerializedSize = serializedSize;
-  // We don't reset the serialized size counter from reentry because that indicates that we
-  // are outlining a model and we actually want to include that size into the parent since
-  // it will still block the parent row. It only restores to zero at the top of the stack.
   try {
     // Track the root so we know that we have to emit this object even though it
     // already has an ID. This is needed because we might see this object twice
@@ -4680,7 +4639,6 @@ function retryTask(request: Request, task: Task): void {
     if (__DEV__) {
       canEmitDebugInfo = prevCanEmitDebugInfo;
     }
-    serializedSize = parentSerializedSize;
   }
 }
 
@@ -4693,11 +4651,9 @@ function tryStreamTask(request: Request, task: Task): void {
     // it false so that we instead outline the row to get a new canEmitDebugInfo if needed.
     canEmitDebugInfo = false;
   }
-  const parentSerializedSize = serializedSize;
   try {
     emitChunk(request, task, task.model);
   } finally {
-    serializedSize = parentSerializedSize;
     if (__DEV__) {
       canEmitDebugInfo = prevCanEmitDebugInfo;
     }
