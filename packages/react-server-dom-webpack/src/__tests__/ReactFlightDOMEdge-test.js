@@ -32,6 +32,7 @@ let webpackModuleLoading;
 let React;
 let ReactServer;
 let ReactDOMServer;
+let ReactDOMServerStatic;
 let ReactServerDOMServer;
 let ReactServerDOMStaticServer;
 let ReactServerDOMClient;
@@ -102,6 +103,7 @@ describe('ReactFlightDOMEdge', () => {
     );
     React = require('react');
     ReactDOMServer = require('react-dom/server.edge');
+    ReactDOMServerStatic = require('react-dom/static.edge');
     ReactServerDOMClient = require('react-server-dom-webpack/client');
     use = React.use;
   });
@@ -1777,4 +1779,356 @@ describe('ReactFlightDOMEdge', () => {
     expect(error).not.toBe(null);
     expect(error.message).toBe(expectedMessage);
   });
+
+  // @gate enableHalt
+  it('resumes outlined boundaries', async () => {
+    function Head({head}) {
+      return head;
+    }
+
+    function Layout({children, p2, head}) {
+      return (
+        <>
+          <Head head={head} />
+          <html>
+            <body>
+              {children}
+              <ReactServer.Suspense fallback={null}>
+                <Await promise={p2} />
+              </ReactServer.Suspense>
+            </body>
+          </html>
+        </>
+      );
+    }
+
+    function Page({p1}) {
+      return (
+        <>
+          <ReactServer.Suspense fallback={null}>
+            <Await promise={p1} />
+          </ReactServer.Suspense>
+          <p>{'asdsadiasdhasuidhasdiuasduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+          <p>{'asdsadiasdhasuidhasdiuasasdsadduhiuihueiohjewiohjewiohj'}</p>
+          <p>{'asdasd'}</p>
+          <p>{'asdasdasadasdasd232344234234234'}</p>
+        </>
+      );
+    }
+
+    function App({p1, p2, head}) {
+      return (
+        <Layout p2={p2} head={head}>
+          <Page p1={p1} />
+        </Layout>
+      );
+    }
+
+    async function Await({promise}) {
+      const text = await promise;
+      return <div hidden>{text}</div>;
+    }
+
+    let resolveFirstServer;
+    const promiseFirstServer = new Promise(resolve => {
+      resolveFirstServer = resolve;
+    });
+    let resolveSecondServer;
+    const promiseSecondServer = new Promise(resolve => {
+      resolveSecondServer = resolve;
+    });
+    let resolveHeadServer;
+    const promiseHeadServer = new Promise(resolve => {
+      resolveHeadServer = resolve;
+    });
+
+    const controller = new AbortController();
+    const errors = [];
+    const prerenderResult = ReactServerDOMStaticServer.unstable_prerender(
+      <App
+        p1={promiseFirstServer}
+        p2={promiseSecondServer}
+        head={promiseHeadServer}
+      />,
+      webpackMap,
+      {
+        signal: controller.signal,
+        onError(err) {
+          errors.push(err);
+        },
+      },
+    );
+    resolveHeadServer(<title>Hi</title>);
+
+    await new Promise(resolve => {
+      setImmediate(() => {
+        controller.abort('boom');
+        resolve();
+      });
+    });
+
+    const {prelude} = await prerenderResult;
+
+    expect(errors).toEqual([]);
+
+    function ClientRoot({response}) {
+      const node = use(response);
+      return node;
+    }
+
+    const prerenderResponse = ReactServerDOMClient.createFromReadableStream(
+      await createUnclosingStream(prelude),
+      {
+        serverConsumerManifest: {
+          moduleMap: null,
+          moduleLoading: null,
+        },
+      },
+    );
+
+    const foo = new AbortController();
+    const fizzPrerenderStreamResult = ReactDOMServerStatic.prerender(
+      React.createElement(ClientRoot, {response: prerenderResponse}),
+      {
+        signal: foo.signal,
+        onError(error) {
+          errors.push(error);
+        },
+      },
+    );
+    await new Promise(resolve => {
+      setImmediate(() => {
+        foo.abort('bam');
+        resolve();
+      });
+    });
+
+    const fizzPrerenderStream = await fizzPrerenderStreamResult;
+
+    const prerenderHTML = await readResult(fizzPrerenderStream.prelude);
+
+    console.log(
+      '-------------------------prerender-----------------------',
+      prerenderHTML,
+    );
+
+    let resolveHeadClient;
+    const promiseHeadClient = new Promise(resolve => {
+      resolveHeadClient = resolve;
+    });
+    let resolveFirstClient;
+    const promiseFirstClient = new Promise(resolve => {
+      resolveFirstClient = resolve;
+    });
+    let resolveSecondClient;
+    const promiseSecondClient = new Promise(resolve => {
+      resolveSecondClient = resolve;
+    });
+
+    const renderStream = ReactServerDOMServer.renderToReadableStream(
+      <App
+        p1={promiseFirstClient}
+        p2={promiseSecondClient}
+        head={promiseHeadClient}
+      />,
+      webpackMap,
+      {
+        onError(err) {
+          errors.push(err);
+        },
+      },
+    );
+
+    const renderResponse = ReactServerDOMClient.createFromReadableStream(
+      renderStream,
+      {
+        serverConsumerManifest: {
+          moduleMap: null,
+          moduleLoading: null,
+        },
+      },
+    );
+    console.log('renderResponse');
+
+    const pendingResumeResult = ReactDOMServer.resume(
+      React.createElement(ClientRoot, {response: renderResponse}),
+      fizzPrerenderStream.postponed,
+      {
+        onError(error) {
+          errors.push(error);
+        },
+      },
+    );
+
+
+    console.log('resumed');
+    const fizzResumeStream = await pendingResumeResult;
+    console.log('awaited resumed');
+
+    await new Promise(resolve => {
+      setImmediate(() => {
+        resolveHeadClient(<title>Hi</title>);
+        resolve();
+      });
+    });
+    await new Promise(resolve => {
+      setImmediate(() => {
+        resolveSecondClient('Second Client resolved');
+        resolve();
+      });
+    });
+
+    await new Promise(resolve => {
+      setImmediate(() => {
+        resolveFirstClient('First Client resolved');
+        resolve();
+      });
+    });
+
+    console.log('resolved');
+    const reader = fizzResumeStream.getReader();
+    let resumeHTML = '';
+    while (true) {
+      const {done, value} = await reader.read();
+      console.log({done, value});
+      if (done) {
+        break;
+      }
+      resumeHTML += Buffer.from(value).toString('utf8');
+    }
+    console.log({prerenderHTML, resumeHTML});
+  });
 });
+
+async function createUnclosingStream(
+  prelude: ReadableStream<Uint8Array>,
+): ReadableStream<Uint8Array> {
+  const chunks: Array<Uint8Array> = [];
+  const reader = prelude.getReader();
+  while (true) {
+    const {done, value} = await reader.read();
+    if (done) {
+      break;
+    } else {
+      chunks.push(value);
+    }
+  }
+
+  let i = 0;
+  return new ReadableStream({
+    async pull(controller) {
+      if (i < chunks.length) {
+        controller.enqueue(chunks[i++]);
+      }
+      // we intentionally keep the stream open. The consumer will clear
+      // out chunks once finished and the remaining memory will be GC'd
+      // when this object goes out of scope
+    },
+  });
+}

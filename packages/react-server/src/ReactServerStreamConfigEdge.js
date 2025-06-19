@@ -14,7 +14,7 @@ export opaque type Chunk = Uint8Array;
 export type BinaryChunk = Uint8Array;
 
 function handleErrorInNextTick(error: any) {
-  setTimeout(() => {
+  setImmediate(() => {
     throw error;
   });
 }
@@ -29,7 +29,7 @@ export const scheduleMicrotask: (callback: () => void) => void =
       };
 
 export function scheduleWork(callback: () => void) {
-  setTimeout(callback, 0);
+  setImmediate(callback, 0);
 }
 
 export function flushBuffered(destination: Destination) {

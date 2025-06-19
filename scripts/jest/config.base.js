@@ -29,10 +29,10 @@ module.exports = {
   rootDir: process.cwd(),
   roots: ['<rootDir>/packages', '<rootDir>/scripts'],
   collectCoverageFrom: ['packages/**/*.js'],
-  fakeTimers: {
-    enableGlobally: true,
-    legacyFakeTimers: true,
-  },
+  // fakeTimers: {
+  //   enableGlobally: true,
+  //   legacyFakeTimers: true,
+  // },
   snapshotSerializers: [require.resolve('jest-snapshot-serializer-raw')],
 
   testEnvironment: '<rootDir>/scripts/jest/ReactJSDOMEnvironment',

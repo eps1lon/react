@@ -4040,6 +4040,7 @@ function spawnNewSuspendedReplayTask(
   task: ReplayTask,
   thenableState: ThenableState | null,
 ): ReplayTask {
+  console.log(new Error())
   return createReplayTask(
     request,
     thenableState,
