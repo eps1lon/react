@@ -2590,7 +2590,7 @@ export function attach(
     const nameStringID = getStringID(name);
 
     if (__DEBUG__) {
-      console.log('recordSuspenseMount()', suspenseInstance);
+      console.log('recordSuspenseMount()', suspenseInstance.instance.id);
     }
 
     idToSuspenseNodeMap.set(fiberID, suspenseInstance);
