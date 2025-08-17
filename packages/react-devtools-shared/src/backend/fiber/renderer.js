@@ -1386,7 +1386,6 @@ export function attach(
         'color: purple;',
         'color: black;',
       );
-      console.log(new Error().stack.split('\n').slice(1).join('\n'));
       console.groupEnd();
     }
   }
