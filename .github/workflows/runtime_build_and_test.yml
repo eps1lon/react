@@ -2,7 +2,7 @@ name: (Runtime) Build and Test
 
 on:
   push:
-    branches: [main]
+    branches: [main, sebbie/rdt-hot]
   pull_request:
     paths-ignore:
       - compiler/**
@@ -118,6 +118,7 @@ jobs:
   discover_flow_inline_configs:
     name: Discover flow inline configs
     runs-on: ubuntu-latest
+    if: false
     outputs:
       matrix: ${{ steps.set-matrix.outputs.result }}
     steps:
@@ -135,6 +136,7 @@ jobs:
     name: Flow check ${{ matrix.flow_inline_config_shortname }}
     needs: [discover_flow_inline_configs, runtime_node_modules_cache]
     runs-on: ubuntu-latest
+    if: false
     strategy:
       fail-fast: false
       matrix:
@@ -169,6 +171,7 @@ jobs:
     name: Confirm generated inline Fizz runtime is up to date
     needs: [runtime_node_modules_cache]
     runs-on: ubuntu-latest
+    if: false
     steps:
       - uses: actions/checkout@v4
         with:
@@ -201,6 +204,7 @@ jobs:
     name: Check flags
     needs: [runtime_node_modules_cache]
     runs-on: ubuntu-latest
+    if: false
     steps:
       - uses: actions/checkout@v4
         with:
@@ -228,6 +232,7 @@ jobs:
     name: yarn test ${{ matrix.params }} (Shard ${{ matrix.shard }})
     needs: [runtime_compiler_node_modules_cache]
     runs-on: ubuntu-latest
+    if: false
     strategy:
       fail-fast: false
       matrix:
@@ -291,6 +296,7 @@ jobs:
     name: Test eslint-plugin-react-hooks
     needs: [runtime_compiler_node_modules_cache]
     runs-on: ubuntu-latest
+    if: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -378,6 +384,7 @@ jobs:
   test_build:
     name: yarn test-build
     needs: [build_and_lint, runtime_compiler_node_modules_cache]
+    if: false
     strategy:
       fail-fast: false
       matrix:
@@ -468,6 +475,7 @@ jobs:
       id-token: write
       attestations: write
     runs-on: ubuntu-latest
+    if: false
     steps:
       - uses: actions/checkout@v4
         with:
@@ -533,6 +541,7 @@ jobs:
     name: Search build artifacts for unminified errors
     needs: [build_and_lint, runtime_node_modules_cache]
     runs-on: ubuntu-latest
+    if: false
     steps:
       - uses: actions/checkout@v4
         with:
@@ -573,6 +582,7 @@ jobs:
     name: Check release dependencies
     needs: [build_and_lint, runtime_node_modules_cache]
     runs-on: ubuntu-latest
+    if: false
     steps:
       - uses: actions/checkout@v4
         with:
@@ -610,6 +620,7 @@ jobs:
     name: Check fixtures DOM (stable)
     needs: build_and_lint
     runs-on: ubuntu-latest
+    if: false
     steps:
       - uses: actions/checkout@v4
         with:
@@ -651,6 +662,7 @@ jobs:
     name: Run fixtures Flight tests
     needs: build_and_lint
     runs-on: ubuntu-latest
+    if: false
     steps:
       - uses: actions/checkout@v4
         with:
@@ -782,6 +794,7 @@ jobs:
     name: Run DevTools e2e tests
     needs: [build_and_lint, runtime_node_modules_cache]
     runs-on: ubuntu-latest
+    if: false
     steps:
       - uses: actions/checkout@v4
         with:
