@@ -3,7 +3,6 @@
 'use strict';
 
 const {join} = require('path');
-const {readJsonSync} = require('fs-extra');
 const clear = require('clear');
 const {getPublicPackages, handleError} = require('./utils');
 const theme = require('./theme');
@@ -23,10 +22,8 @@ const run = async () => {
   try {
     const params = parseParams();
 
-    const version =
-      params.publishVersion ??
-      readJsonSync('./build/node_modules/react/package.json').version;
-    const isExperimental = version.includes('experimental');
+    // Publishing experimental versions as stable is forbidden
+    const isExperimental = false;
 
     params.cwd = join(__dirname, '..', '..');
     params.packages = await getPublicPackages(isExperimental);

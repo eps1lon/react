@@ -39,11 +39,6 @@ const paramDefinitions = [
     description: 'Run in automated environment, without interactive prompts.',
     defaultValue: false,
   },
-  {
-    name: 'publishVersion',
-    type: String,
-    description: 'Version to publish',
-  },
 ];
 
 module.exports = () => {

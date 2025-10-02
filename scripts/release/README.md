@@ -84,28 +84,12 @@ scripts/release/publish.js --tags experimental
 
 ## Publishing a Stable Release
 
-Stable releases should always be created from the "next" channel. This encourages better testing of the actual release artifacts and reduces the chance of unintended changes accidentally being included in a stable release.
+Stable releases should always be created from the "canary" channel. This encourages better testing of the actual release artifacts and reduces the chance of unintended changes accidentally being included in a stable release.
 
-To prepare a stable release, choose a "next" version and run the [`prepare-release-from-npm`](#prepare-release-from-npm) script <sup>1</sup>:
+To prepare a stable release, choose a "canary" version that's published on NPM.
 
-```sh
-scripts/release/prepare-release-from-npm.js --version=0.0.0-241c4467e-20200129
-```
-
-This script will prompt you to select stable version numbers for each of the packages. It will update the package JSON versions (and dependencies) based on the numbers you select.
-
-Once this step is complete, you're ready to publish the release:
-
-```sh
-scripts/release/publish.js --tags latest
-
-# Or, if you want to bump "next" as well:
-scripts/release/publish.js --tags latest next
-```
-
-After successfully publishing the release, follow the on-screen instructions to ensure that all of the appropriate post-release steps are executed.
-
-<sup>1: You can omit the `version` param if you just want to promote the latest "next" candidate to stable.</sup>
+Use the prerelease part of that version as the `prerelease` parameter in https://github.com/facebook/react/actions/workflows/runtime_releases_from_npm_manual.yml.
+E.g. Use `fd524fe0-20251121` when the published Canary version is `19.3.0-canary-fd524fe0-20251121`.
 
 ## Creating a Patch Release
 
