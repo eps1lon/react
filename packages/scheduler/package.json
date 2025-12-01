@@ -1,5 +1,8 @@
 {
-  "name": "scheduler",
+  "name": "@eps1lon/scheduler",
+  "publishConfig": {
+    "access": "public"
+  },
   "version": "0.28.0",
   "description": "Cooperative scheduler for the browser environment.",
   "repository": {

@@ -1,5 +1,8 @@
 {
-  "name": "react-dom",
+  "name": "@eps1lon/react-dom",
+  "publishConfig": {
+    "access": "public"
+  },
   "version": "19.3.0",
   "description": "React package for working with the DOM.",
   "main": "index.js",

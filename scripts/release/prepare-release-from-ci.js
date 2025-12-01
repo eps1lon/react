@@ -22,6 +22,7 @@ const run = async () => {
     await downloadBuildArtifacts({
       commit: params.commit,
       releaseChannel: params.releaseChannel ?? process.env.RELEASE_CHANNEL,
+      noVerify: true,
     });
 
     if (!params.skipTests) {

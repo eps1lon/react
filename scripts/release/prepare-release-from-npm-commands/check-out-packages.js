@@ -37,7 +37,7 @@ const run = async (packages, versionsMap, {cwd, prerelease}) => {
     // which we had to remove as a separate step before re-publishing.
     // It's easier for us to just download and extract the tarball.
     const url = await execRead(
-      `npm view ${packageName}@${version} dist.tarball`
+      `npm view @eps1lon/${packageName}@${version} dist.tarball`
     );
     const filePath = join(nodeModulesPath, `${packageName}.tgz`);
     const packagePath = join(nodeModulesPath, `${packageName}`);

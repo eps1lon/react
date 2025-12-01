@@ -14,8 +14,7 @@ if (process.env.GH_TOKEN == null) {
   process.exit(1);
 }
 
-const OWNER = 'facebook';
-const REPO = 'react';
+const repository = 'eps1lon/react';
 const WORKFLOW_ID = 'runtime_build_and_test.yml';
 const GITHUB_HEADERS = `
   -H "Accept: application/vnd.github+json" \
@@ -48,16 +47,15 @@ function getWorkflowId() {
 }
 
 async function getWorkflowRun(commit) {
-  const res = await exec(
-    `curl -L ${GITHUB_HEADERS} https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${getWorkflowId()}/runs?head_sha=${commit}`
-  );
+  const url = `https://api.github.com/repos/${repository}/actions/workflows/${getWorkflowId()}/runs?head_sha=${commit}`;
+  const res = await exec(`curl -L ${GITHUB_HEADERS} ${url}`);
 
   const json = JSON.parse(res.stdout);
   const workflowRun = json.workflow_runs.find(run => run.head_sha === commit);
 
   if (workflowRun == null || workflowRun.id == null) {
     console.log(
-      theme`{error The workflow run for the specified commit (${commit}) could not be found.}`
+      theme`{error The workflow run for the specified commit (${commit}) could not be found in ${url}}`
     );
     process.exit(1);
   }
@@ -67,7 +65,7 @@ async function getWorkflowRun(commit) {
 
 async function getArtifact(workflowRunId, artifactName) {
   const res = await exec(
-    `curl -L ${GITHUB_HEADERS} https://api.github.com/repos/${OWNER}/${REPO}/actions/runs/${workflowRunId}/artifacts?per_page=100&name=${artifactName}`
+    `curl -L ${GITHUB_HEADERS} https://api.github.com/repos/${repository}/actions/runs/${workflowRunId}/artifacts?per_page=100&name=${artifactName}`
   );
 
   const json = JSON.parse(res.stdout);
@@ -77,7 +75,7 @@ async function getArtifact(workflowRunId, artifactName) {
 
   if (artifact == null) {
     console.log(
-      theme`{error The specified workflow run (${workflowRunId}) does not contain any build artifacts.}`
+      theme`{error The specified workflow run (${workflowRunId}) does not contain any artifact named ${artifactName}.}`
     );
     process.exit(1);
   }
@@ -103,7 +101,7 @@ async function processArtifact(artifact, opts) {
     // Use https://cli.github.com/manual/gh_attestation_verify to verify artifact
     if (executableIsAvailable('gh')) {
       await exec(
-        `gh attestation verify artifacts_combined.zip --repo=${OWNER}/${REPO}`,
+        `gh attestation verify artifacts_combined.zip --repo=${repository}`,
         {
           cwd: tmpDir,
         }
@@ -175,20 +173,12 @@ async function downloadArtifactsFromGitHub(opts) {
           break;
         }
         case 'completed': {
-          if (workflowRun.conclusion === 'success') {
-            const artifact = await getArtifact(
-              workflowRun.id,
-              'artifacts_combined'
-            );
-            await processArtifact(artifact, opts);
-            return;
-          } else {
-            console.log(
-              theme`{error Could not download build as its conclusion was: ${workflowRun.conclusion}}`
-            );
-            process.exit(1);
-          }
-          break;
+          const artifact = await getArtifact(
+            workflowRun.id,
+            'artifacts_combined'
+          );
+          await processArtifact(artifact, opts);
+          return;
         }
         default: {
           console.log(

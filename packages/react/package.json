@@ -1,5 +1,8 @@
 {
-  "name": "react",
+  "name": "@eps1lon/react",
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "React is a JavaScript library for building user interfaces.",
   "keywords": [
     "react"
