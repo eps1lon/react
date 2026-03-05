@@ -3860,7 +3860,7 @@ function remountFiber(
       deletions.push(current);
     }
 
-    newWorkInProgress.flags |= Placement;
+    newWorkInProgress.flags |= Placement | PlacementDEV;
 
     // Restart work from the new fiber.
     return newWorkInProgress;
