@@ -5255,9 +5255,10 @@ function doubleInvokeEffectsInDEVIfNecessary(
   if (fiber.memoizedState === null) {
     // Only consider Offscreen that is visible.
     // TODO (Offscreen) Handle manual mode.
-    if (isInStrictMode && fiber.flags & Visibility) {
+    if (isInStrictMode && fiber.flags & (Visibility | PlacementDEV)) {
       // Double invoke effects on Offscreen's subtree only
-      // if it is visible and its visibility has changed.
+      // if it is visible and its visibility has changed, or if this is a
+      // newly hydrated/re-mounted subtree.
       runWithFiberInDEV(fiber, doubleInvokeEffectsOnFiber, root, fiber);
     } else if (fiber.subtreeFlags & PlacementDEV) {
       // Something in the subtree could have been suspended.

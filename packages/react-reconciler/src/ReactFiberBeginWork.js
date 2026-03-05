@@ -88,6 +88,7 @@ import {
   NoFlags,
   PerformedWork,
   Placement,
+  PlacementDEV,
   Hydrating,
   Callback,
   ContentReset,
@@ -1080,7 +1081,7 @@ function updateDehydratedActivityComponent(
       // Conceptually this is similar to Placement in that a new subtree is
       // inserted into the React tree here. It just happens to not need DOM
       // mutations because it already exists.
-      primaryChildFragment.flags |= Hydrating;
+      primaryChildFragment.flags |= Hydrating | PlacementDEV;
       return primaryChildFragment;
     }
   } else {
@@ -1896,7 +1897,7 @@ function updateHostRoot(
         // Conceptually this is similar to Placement in that a new subtree is
         // inserted into the React tree here. It just happens to not need DOM
         // mutations because it already exists.
-        node.flags = (node.flags & ~Placement) | Hydrating;
+        node.flags = (node.flags & ~Placement) | Hydrating | PlacementDEV;
         node = node.sibling;
       }
     }
@@ -3101,7 +3102,7 @@ function updateDehydratedSuspenseComponent(
       // Conceptually this is similar to Placement in that a new subtree is
       // inserted into the React tree here. It just happens to not need DOM
       // mutations because it already exists.
-      primaryChildFragment.flags |= Hydrating;
+      primaryChildFragment.flags |= Hydrating | PlacementDEV;
       return primaryChildFragment;
     }
   } else {
