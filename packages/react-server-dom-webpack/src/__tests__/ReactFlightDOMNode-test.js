@@ -1909,4 +1909,113 @@ describe('ReactFlightDOMNode', () => {
       globalThis.eval = previousEval;
     }
   });
+
+  // @gate __DEV__
+  it('can transport owner stack when accidentally passing a function to a Client Component through a separate debug channel', async () => {
+    function ClientComponent() {
+      return null;
+    }
+
+    const ClientComponentOnTheClient = clientExports(
+      ClientComponent,
+      123,
+      'path/to/chunk.js',
+    );
+    const ClientComponentOnTheServer = clientExports(ClientComponent);
+
+    function ServerComponent() {
+      return ReactServer.createElement(ClientComponentOnTheClient, {
+        invalid: function InvalidValue() {},
+      });
+    }
+
+    function App() {
+      return ReactServer.createElement(
+        React.Suspense,
+        null,
+        ReactServer.createElement(ServerComponent, null),
+      );
+    }
+
+    const rscErrors = [];
+    const rscOwnerStacks = [];
+    const rscStream = await serverAct(() =>
+      ReactServerDOMServer.renderToPipeableStream(<App />, webpackMap, {
+        onError(error) {
+          rscErrors.push(error.toString() + ignoreListStack(error.stack));
+          if (ReactServer.captureOwnerStack) {
+            rscOwnerStacks.push(
+              normalizeCodeLocInfo(ReactServer.captureOwnerStack()),
+            );
+          }
+        },
+        filterStackFrame,
+      }),
+    );
+
+    // Create a delayed stream to ensure owner stack/debug metadata survives
+    // when the model stream arrives after the debug channel.
+    const {delayedStream, resolveDelayedStream} = createDelayedStream();
+    rscStream.pipe(delayedStream);
+
+    function ClientRoot({response}) {
+      return use(response);
+    }
+
+    const serverConsumerManifest = {
+      moduleMap: {
+        [webpackMap[ClientComponentOnTheClient.$$id].id]: {
+          '*': webpackMap[ClientComponentOnTheServer.$$id],
+        },
+      },
+      moduleLoading: webpackModuleLoading,
+    };
+
+    const response = ReactServerDOMClient.createFromNodeStream(
+      delayedStream,
+      serverConsumerManifest,
+    );
+
+    expect(rscErrors).toEqual([
+      'Error: Functions cannot be passed directly to Client Components unless you explicitly expose it by marking it with "use server". ' +
+        'Or maybe you meant to call this function rather than return it.' +
+        '\n  <... invalid={function InvalidValue}>' +
+        '\n               ^^^^^^^^^^^^^^^^^^^^^^^',
+    ]);
+    expect(rscOwnerStacks).toEqual([
+      '\n    in ServerComponent (at **)' + '\n    in App (at **)',
+    ]);
+
+    setTimeout(resolveDelayedStream);
+
+    const ssrErrors = [];
+    const ssrOwnerStacks = [];
+    const ssrStream = await serverAct(() =>
+      ReactDOMServer.renderToPipeableStream(
+        <ClientRoot response={response} />,
+        {
+          filterStackFrame,
+          onError(error, errorInfo) {
+            ssrErrors.push(error.toString() + ignoreListStack(error.stack));
+            if (React.captureOwnerStack) {
+              ssrOwnerStacks.push(
+                normalizeCodeLocInfo(React.captureOwnerStack()),
+              );
+            }
+          },
+        },
+      ),
+    );
+
+    expect(ssrErrors).toEqual([
+      'Error: Functions cannot be passed directly to Client Components unless you explicitly expose it by marking it with "use server". ' +
+        'Or maybe you meant to call this function rather than return it.' +
+        '\n  <... invalid={function InvalidValue}>' +
+        '\n               ^^^^^^^^^^^^^^^^^^^^^^^' +
+        '\n    at ./ReactFlightDOMNode-test.js:199:18',
+    ]);
+    expect(ssrOwnerStacks).toEqual([]);
+
+    await readResult(ssrStream);
+  });
 });
