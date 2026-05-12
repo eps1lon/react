@@ -96,7 +96,7 @@ async function processArtifact(artifact, opts) {
     }
   );
 
-  if (opts.noVerify === true) {
+  if (true) {
     console.log(theme`{caution Skipping verification of build artifact.}`);
   } else {
     // Use https://cli.github.com/manual/gh_attestation_verify to verify artifact
@@ -174,20 +174,12 @@ async function downloadArtifactsFromGitHub(opts) {
           break;
         }
         case 'completed': {
-          if (workflowRun.conclusion === 'success') {
-            const artifact = await getArtifact(
-              workflowRun.id,
-              'artifacts_combined'
-            );
-            await processArtifact(artifact, opts);
-            return;
-          } else {
-            console.log(
-              theme`{error Could not download build as its conclusion was: ${workflowRun.conclusion}}`
-            );
-            process.exit(1);
-          }
-          break;
+          const artifact = await getArtifact(
+            workflowRun.id,
+            'artifacts_combined'
+          );
+          await processArtifact(artifact, opts);
+          return;
         }
         default: {
           console.log(

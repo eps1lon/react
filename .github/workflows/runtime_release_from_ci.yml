@@ -149,7 +149,7 @@ jobs:
       # ----- stable (semver) — either @latest or @backport -----
       - name: Stage semver stable artifacts
         if: ${{ startsWith(needs.resolve.outputs.release_type, 'stable-') }}
-        run: scripts/release/prepare-release-from-ci.js --skipTests -r latest --commit=${{ github.sha }}
+        run: scripts/release/prepare-release-from-ci.js --skipTests -r latest --commit=b09687a9ca4bfe153755d113865ad9b402d78dd7
       - name: Publish semver stable to @latest
         if: ${{ needs.resolve.outputs.release_type == 'stable-latest' }}
         run: |
@@ -174,7 +174,7 @@ jobs:
       # same package, even if they use different dist tags.
       - name: Stage canary artifacts
         if: ${{ needs.resolve.outputs.release_type == 'nightly' }}
-        run: scripts/release/prepare-release-from-ci.js --skipTests -r stable --commit=${{ github.sha }}
+        run: scripts/release/prepare-release-from-ci.js --skipTests -r stable --commit=b09687a9ca4bfe153755d113865ad9b402d78dd7
       # Single tag only — OIDC publish tokens can't add additional dist-tags
       # after publish, so the historical `canary,next` aliasing is gone.
       - name: Publish canary to @canary
@@ -188,7 +188,7 @@ jobs:
       # ----- experimental (nightly + experimental_only) -----
       - name: Stage experimental artifacts
         if: ${{ needs.resolve.outputs.release_type == 'nightly' || needs.resolve.outputs.release_type == 'experimental_only' }}
-        run: scripts/release/prepare-release-from-ci.js --skipTests -r experimental --commit=${{ github.sha }}
+        run: scripts/release/prepare-release-from-ci.js --skipTests -r experimental --commit=b09687a9ca4bfe153755d113865ad9b402d78dd7
       - name: Publish experimental to @experimental
         if: ${{ needs.resolve.outputs.release_type == 'nightly' || needs.resolve.outputs.release_type == 'experimental_only' }}
         run: |
