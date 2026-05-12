@@ -13,11 +13,12 @@ const paramDefinitions = [
     defaultValue: false,
   },
   {
-    name: 'tags',
+    name: 'tag',
     type: String,
-    multiple: true,
-    description: 'NPM tags to point to the new release.',
-    defaultValue: ['untagged'],
+    description:
+      'NPM dist-tag to attach at publish time. OIDC trusted publishing ' +
+      'authorizes a single tag per publish, so only one value is accepted ' +
+      '— passing comma-separated tags or repeating --tag is rejected.',
   },
   {
     name: 'onlyPackages',
@@ -34,15 +35,16 @@ const paramDefinitions = [
     defaultValue: [],
   },
   {
+    name: 'prerelease',
+    type: String,
+    description:
+      'prerelease to publish (e.g. version 19.2.0-canary-86181134-20251001 has prerelease "86181134-20251001")',
+  },
+  {
     name: 'ci',
     type: Boolean,
     description: 'Run in automated environment, without interactive prompts.',
     defaultValue: false,
-  },
-  {
-    name: 'publishVersion',
-    type: String,
-    description: 'Version to publish',
   },
 ];
 
@@ -50,23 +52,35 @@ module.exports = () => {
   const params = commandLineArgs(paramDefinitions);
   splitCommaParams(params.skipPackages);
   splitCommaParams(params.onlyPackages);
-  splitCommaParams(params.tags);
-  params.tags.forEach(tag => {
-    switch (tag) {
-      case 'latest':
-      case 'canary':
-      case 'next':
-      case 'experimental':
-      case 'alpha':
-      case 'beta':
-      case 'rc':
-      case 'untagged':
-        break;
-      default:
-        console.error('Unsupported tag: "' + tag + '"');
-        process.exit(1);
-        break;
-    }
-  });
+
+  // Single-tag invariant. `command-line-args` already collapses multiple
+  // --tag occurrences to the last value (since `multiple` is not set), but it
+  // happily accepts `--tag a,b` as the literal string "a,b". Reject that
+  // here so the failure is loud and obvious instead of being deferred to a
+  // later "Unsupported tag" message that doesn't explain the cause.
+  if (params.tag == null || params.tag === '') {
+    console.error('--tag is required and must be a single dist-tag.');
+    process.exit(1);
+  }
+  if (params.tag.includes(',') || params.tag.includes(' ')) {
+    console.error(
+      'Only a single --tag is allowed, got: "' + params.tag + '"'
+    );
+    process.exit(1);
+  }
+  switch (params.tag) {
+    case 'latest':
+    case 'canary':
+    case 'experimental':
+    case 'backport':
+    case 'alpha':
+    case 'beta':
+    case 'rc':
+      break;
+    default:
+      console.error('Unsupported tag: "' + params.tag + '"');
+      process.exit(1);
+  }
+
   return params;
 };
