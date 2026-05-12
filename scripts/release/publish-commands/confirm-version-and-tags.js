@@ -5,10 +5,9 @@
 const clear = require('clear');
 const {readJson} = require('fs-extra');
 const {join} = require('path');
-const {confirm} = require('../utils');
 const theme = require('../theme');
 
-const run = async ({cwd, packages, tags, ci}) => {
+const run = async ({cwd, packages, tags}) => {
   clear();
 
   if (tags.length === 0) {
@@ -36,15 +35,10 @@ const run = async ({cwd, packages, tags, ci}) => {
     );
     const packageJSON = await readJson(packageJSONPath);
     console.log(
-      theme`• {package ${packageName}} {version ${packageJSON.version}}`
+      `::group::${theme`{package ${packageName}} {version ${packageJSON.version}}`}`
     );
-    if (ci) {
-      console.log(packageJSON);
-    }
-  }
-
-  if (!ci) {
-    await confirm('Do you want to proceed?');
+    console.log(packageJSON);
+    console.log('::endgroup::');
   }
 
   clear();
