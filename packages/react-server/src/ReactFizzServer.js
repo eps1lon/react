@@ -6458,7 +6458,7 @@ export function getPostponedState(request: Request): null | PostponedState {
   if (!hasFlushableShell) {
     nextSegmentId = 0;
     // We need to ensure that on resume we retry the root. We use a number
-    // type for the replaySlots to signify this (see resumeRequest).
+    // type for the replaySlots to signify this (see resuhasFlushableShellmeRequest).
     // The value -1 represents an unassigned ID but is not functionally meaningful
     // for resuming at the root.
     replaySlots = -1;
