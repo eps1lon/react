@@ -2,37 +2,38 @@
 
 ### React Server Components
 
-- Don't drop FormData entries in `decodeReplyFromBusboy` ([#36566](https://github.com/facebook/react/pull/36566))
+- Fixed missing `FormData` entries in Server Actions which regressed in 19.2.6 (@unstubbable [#36566](https://github.com/facebook/react/pull/36566))
 
 ## 19.2.6 (May 6, 2026)
 
 ### React Server Components
 
-- Type hardening and performance improvements for React Flight Reply
+- Type hardening and performance improvements (@eps1lon, @unstubbable [#36425](https://github.com/facebook/react/pull/36425))
 
 ## 19.2.5 (March 18, 2026)
 
 ### React Server Components
 
-- Avoid consuming cyclic models multiple times in React Flight
+- Add more cycle protections (@eps1lon, @unstubbable [#36236](https://github.com/facebook/react/pull/36236))
 
 ## 19.2.4 (Jan 26, 2026)
 
 ### React Server Components
 
-- Add more DoS mitigations to React Flight Reply and harden React Flight
+- Add more DoS mitigations to Server Actions, and harden Server Components (@gnoff, @lubieowoce, @sebmarkbage, @unstubbable [#35632](https://github.com/facebook/react/pull/35632))
 
 ## 19.2.3 (Dec 11, 2025)
 
 ### React Server Components
 
-- Harden React Flight against malicious payloads
+- Add extra loop protection to React Server Functions (@sebmarkbage [#35351](https://github.com/facebook/react/pull/35351))
 
 ## 19.2.2 (Dec 11, 2025)
 
 ### React Server Components
 
-- Patch Promise cycles and `toString` on Server Functions
+- Move `react-server-dom-webpack/*.unbundled` to private `react-server-dom-unbundled` (@eps1lon [#35290](https://github.com/facebook/react/pull/35290))
+- Patch Promise cycles and toString on Server Functions (@sebmarkbage, @unstubbable [#35289](https://github.com/facebook/react/pull/35289), [#35345](https://github.com/facebook/react/pull/35345))
 
 ## 19.2.1 (Dec 3, 2025)
 
@@ -117,37 +118,38 @@ Read the [React 19.2 release post](https://react.dev/blog/2025/10/01/react-19-2)
 
 ### React Server Components
 
-- Don't drop FormData entries in `decodeReplyFromBusboy` ([#36567](https://github.com/facebook/react/pull/36567))
+- Fixed missing `FormData` entries in Server Actions which regressed in 19.1.7 (@unstubbable [#36567](https://github.com/facebook/react/pull/36567))
 
 ## 19.1.7 (May 6, 2026)
 
 ### React Server Components
 
-- Type hardening and performance improvements for React Flight Reply
+- Type hardening and performance improvements (@eps1lon, @unstubbable [#36425](https://github.com/facebook/react/pull/36425))
 
 ## 19.1.6 (March 18, 2026)
 
 ### React Server Components
 
-- Avoid consuming cyclic models multiple times in React Flight
+- Add more cycle protections (@eps1lon, @unstubbable [#36236](https://github.com/facebook/react/pull/36236))
 
 ## 19.1.5 (Jan 26, 2026)
 
 ### React Server Components
 
-- Add more DoS mitigations to React Flight Reply and harden React Flight
+- Add more DoS mitigations to Server Actions, and harden Server Components (@gnoff, @lubieowoce, @sebmarkbage, @unstubbable [#35632](https://github.com/facebook/react/pull/35632))
 
 ## 19.1.4 (Dec 11, 2025)
 
 ### React Server Components
 
-- Harden React Flight against malicious payloads
+- Add extra loop protection to React Server Functions (@sebmarkbage [#35351](https://github.com/facebook/react/pull/35351))
 
 ## 19.1.3 (Dec 11, 2025)
 
 ### React Server Components
 
-- Patch Promise cycles and `toString` on Server Functions
+- Move `react-server-dom-webpack/*.unbundled` to private `react-server-dom-unbundled` (@eps1lon [#35290](https://github.com/facebook/react/pull/35290))
+- Patch Promise cycles and toString on Server Functions (@sebmarkbage, @unstubbable [#35289](https://github.com/facebook/react/pull/35289), [#35345](https://github.com/facebook/react/pull/35345))
 
 ## 19.1.2 (Dec 3, 2025)
 
@@ -211,37 +213,37 @@ An Owner Stack is a string representing the components that are directly respons
 
 ### React Server Components
 
-- Don't drop FormData entries in `decodeReplyFromBusboy` ([#36568](https://github.com/facebook/react/pull/36568))
+- Fixed missing `FormData` entries in Server Actions which regressed in 19.0.6 (@unstubbable [#36568](https://github.com/facebook/react/pull/36568))
 
 ## 19.0.6 (May 6, 2026)
 
 ### React Server Components
 
-- Type hardening and performance improvements for React Flight Reply
+- Type hardening and performance improvements (@eps1lon, @unstubbable [#36425](https://github.com/facebook/react/pull/36425))
 
 ## 19.0.5 (March 18, 2026)
 
 ### React Server Components
 
-- Avoid consuming cyclic models multiple times in React Flight
+- Add more cycle protections (@eps1lon, @unstubbable [#36236](https://github.com/facebook/react/pull/36236))
 
 ## 19.0.4 (Jan 26, 2026)
 
 ### React Server Components
 
-- Add more DoS mitigations to React Flight Reply and harden React Flight
+- Add more DoS mitigations to Server Actions, and harden Server Components (@gnoff, @lubieowoce, @sebmarkbage, @unstubbable [#35632](https://github.com/facebook/react/pull/35632))
 
 ## 19.0.3 (Dec 11, 2025)
 
 ### React Server Components
 
-- Harden React Flight against malicious payloads
+- Add extra loop protection to React Server Functions (@sebmarkbage [#35351](https://github.com/facebook/react/pull/35351))
 
 ## 19.0.2 (Dec 11, 2025)
 
 ### React Server Components
 
-- Patch Promise cycles and `toString` on Server Functions
+- Patch Promise cycles and toString on Server Functions (@sebmarkbage, @unstubbable [#35289](https://github.com/facebook/react/pull/35289), [#35345](https://github.com/facebook/react/pull/35345))
 
 ## 19.0.1 (Dec 3, 2025)
 
