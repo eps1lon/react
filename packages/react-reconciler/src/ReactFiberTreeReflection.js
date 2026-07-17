@@ -10,6 +10,8 @@
 import type {Fiber} from './ReactInternalTypes';
 import type {
   Container,
+  Instance,
+  TextInstance,
   ActivityInstance,
   SuspenseInstance,
 } from './ReactFiberConfig';
@@ -345,27 +347,34 @@ export function doesFiberContain(
   return false;
 }
 
-export function traverseFragmentInstance<A, B, C>(
+export function traverseFragmentInstanceHostComponentsAndTexts<A, B, C>(
   fragmentFiber: Fiber,
   fn: (Fiber, A, B, C) => boolean,
   a: A,
   b: B,
   c: C,
 ): void {
-  traverseVisibleHostChildren(fragmentFiber.child, false, fn, a, b, c);
+  traverseVisibleHostComponentsAndTexts(
+    fragmentFiber.child,
+    false,
+    fn,
+    a,
+    b,
+    c,
+  );
 }
 
-export function traverseFragmentInstanceDeeply<A, B, C>(
+export function traverseFragmentInstanceHostComponentsAndTextsDeeply<A, B, C>(
   fragmentFiber: Fiber,
   fn: (Fiber, A, B, C) => boolean,
   a: A,
   b: B,
   c: C,
 ): void {
-  traverseVisibleHostChildren(fragmentFiber.child, true, fn, a, b, c);
+  traverseVisibleHostComponentsAndTexts(fragmentFiber.child, true, fn, a, b, c);
 }
 
-function traverseVisibleHostChildren<A, B, C>(
+function traverseVisibleHostComponentsAndTexts<A, B, C>(
   child: Fiber | null,
   searchWithinHosts: boolean,
   fn: (Fiber, A, B, C) => boolean,
@@ -387,7 +396,14 @@ function traverseVisibleHostChildren<A, B, C>(
     } else {
       if (
         (searchWithinHosts || child.tag !== HostComponent) &&
-        traverseVisibleHostChildren(child.child, searchWithinHosts, fn, a, b, c)
+        traverseVisibleHostComponentsAndTexts(
+          child.child,
+          searchWithinHosts,
+          fn,
+          a,
+          b,
+          c,
+        )
       ) {
         return true;
       }
@@ -397,7 +413,9 @@ function traverseVisibleHostChildren<A, B, C>(
   return false;
 }
 
-export function getFragmentParentHostFiber(fiber: Fiber): null | Fiber {
+export function getFragmentParentHostComponentOrRootFiber(
+  fiber: Fiber,
+): null | Fiber {
   let parent = fiber.return;
   while (parent !== null) {
     if (parent.tag === HostRoot || parent.tag === HostComponent) {
@@ -424,11 +442,11 @@ export function fiberIsPortaledIntoHost(fiber: Fiber): boolean {
   return foundPortalParent;
 }
 
-export function getFragmentInstanceSiblings(
+export function getFragmentInstanceHostComponentSiblings(
   fiber: Fiber,
 ): [Fiber | null, Fiber | null] {
   const result: [Fiber | null, Fiber | null] = [null, null];
-  const parentHostFiber = getFragmentParentHostFiber(fiber);
+  const parentHostFiber = getFragmentParentHostComponentOrRootFiber(fiber);
   if (parentHostFiber === null) {
     return result;
   }
@@ -474,7 +492,9 @@ function findFragmentInstanceSiblings(
   return false;
 }
 
-export function getInstanceFromHostFiber<I>(fiber: Fiber): I {
+export function getInstanceFromHostFiber<
+  I: Instance | TextInstance | Container,
+>(fiber: Fiber): I {
   switch (fiber.tag) {
     case HostComponent:
     case HostText:
@@ -501,8 +521,10 @@ function popSearchBoundary(): null | Fiber {
   return searchBoundary;
 }
 
-export function getNextSiblingHostFiber(fiber: Fiber): null | Fiber {
-  traverseVisibleHostChildren(fiber.sibling, false, findNextSibling);
+export function getNextSiblingHostComponentOrTextFiber(
+  fiber: Fiber,
+): null | Fiber {
+  traverseVisibleHostComponentsAndTexts(fiber.sibling, false, findNextSibling);
   const sibling = popSearchTarget();
   pushSearchTarget(null);
   return sibling;
@@ -536,7 +558,7 @@ export function isFragmentContainedByFiber(
 ): boolean {
   let current: Fiber | null = fragmentFiber;
   const fiberHostParent: Fiber | null =
-    getFragmentParentHostFiber(fragmentFiber);
+    getFragmentParentHostComponentOrRootFiber(fragmentFiber);
   while (current !== null) {
     if (
       (current.tag === HostComponent || current.tag === HostRoot) &&
@@ -558,7 +580,7 @@ export function isFiberPreceding(fiber: Fiber, otherFiber: Fiber): boolean {
   if (commonAncestor === null) {
     return false;
   }
-  traverseVisibleHostChildren(
+  traverseVisibleHostComponentsAndTexts(
     commonAncestor,
     true,
     isFiberPrecedingCheck,
@@ -594,7 +616,7 @@ export function isFiberFollowing(fiber: Fiber, otherFiber: Fiber): boolean {
   if (commonAncestor === null) {
     return false;
   }
-  traverseVisibleHostChildren(
+  traverseVisibleHostComponentsAndTexts(
     commonAncestor,
     true,
     isFiberFollowingCheck,
