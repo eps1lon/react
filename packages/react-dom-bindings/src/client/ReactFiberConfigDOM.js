@@ -67,7 +67,7 @@ import {
   getInstanceFromHostFiber,
   isFiberFollowing,
   isFiberPreceding,
-  getFragmentInstanceHostComponentSiblings,
+  getFragmentInstanceHostComponentOrTextSiblings,
   traverseFragmentInstanceHostComponentsAndTextsDeeply,
   fiberIsPortaledIntoHost,
   isFiberContainedByFragment,
@@ -3546,6 +3546,19 @@ function validateDocumentPositionWithFiberTree(
   return false;
 }
 
+function scrollTextNodeIntoView(
+  textNode: TextInstance,
+  resolvedAlignToTop: boolean,
+): void {
+  const range = textNode.ownerDocument.createRange();
+  range.selectNodeContents(textNode);
+  const rect = range.getBoundingClientRect();
+  const scrollY = resolvedAlignToTop
+    ? window.scrollY + rect.top
+    : window.scrollY + rect.bottom - window.innerHeight;
+  window.scrollTo(window.scrollX + rect.left, scrollY);
+}
+
 if (enableFragmentRefsScrollIntoView) {
   // $FlowFixMe[prop-missing]
   FragmentInstance.prototype.scrollIntoView = function (
@@ -3570,7 +3583,7 @@ if (enableFragmentRefsScrollIntoView) {
 
     // If there are no children, we can use the parent and siblings to determine a position
     if (children.length === 0) {
-      const hostSiblings = getFragmentInstanceHostComponentSiblings(
+      const hostSiblings = getFragmentInstanceHostComponentOrTextSiblings(
         this._fragmentFiber,
       );
       const targetFiber = resolvedAlignToTop
@@ -3586,6 +3599,12 @@ if (enableFragmentRefsScrollIntoView) {
               'children, siblings, or parent. No scroll was performed.',
           );
         }
+        return;
+      }
+      // For text node siblings, use Range API to scroll to their position
+      if (enableFragmentRefsTextNodes && targetFiber.tag === HostText) {
+        const textNode = getInstanceFromHostFiber<TextInstance>(targetFiber);
+        scrollTextNodeIntoView(textNode, resolvedAlignToTop);
         return;
       }
       const target = getInstanceFromHostFiber<Instance | Container>(
@@ -3604,14 +3623,8 @@ if (enableFragmentRefsScrollIntoView) {
       const child = children[i];
       // For text nodes, use Range API to scroll to their position
       if (enableFragmentRefsTextNodes && child.tag === HostText) {
-        const textNode: Text = child.stateNode;
-        const range = textNode.ownerDocument.createRange();
-        range.selectNodeContents(textNode);
-        const rect = range.getBoundingClientRect();
-        const scrollY = resolvedAlignToTop
-          ? window.scrollY + rect.top
-          : window.scrollY + rect.bottom - window.innerHeight;
-        window.scrollTo(window.scrollX + rect.left, scrollY);
+        const textNode = getInstanceFromHostFiber<TextInstance>(child);
+        scrollTextNodeIntoView(textNode, resolvedAlignToTop);
         i += resolvedAlignToTop ? -1 : 1;
         continue;
       }
