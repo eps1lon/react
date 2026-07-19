@@ -31,6 +31,7 @@ describe('FragmentRefs', () => {
     global.window = jsdom.window;
     global.document = global.window.document;
     global.navigator = global.window.navigator;
+    global.Event = global.window.Event;
   });
 
   describe('focus methods', () => {
@@ -70,7 +71,7 @@ describe('FragmentRefs', () => {
   describe('events', () => {
     describe('dispatchEvent()', () => {
       // @gate enableFragmentRefs
-      it('throws when the fragment is a child of a HostSingleton in a document root', async () => {
+      it('fires events when the fragment is a child of a HostSingleton in a document root', async () => {
         const fragmentRef = React.createRef();
         const bodyRef = React.createRef();
         const root = ReactDOMClient.createRoot(document);
@@ -90,17 +91,12 @@ describe('FragmentRefs', () => {
         const bodyListener = jest.fn();
         bodyRef.current.addEventListener('custom', bodyListener);
 
-        // TODO: The parent lookup skips the <body> HostSingleton and lands
-        // on the HostRoot, whose instance is the Document container.
-        // Appending the temporary event target to a Document throws.
-        expect(() => {
-          fragmentRef.current.dispatchEvent(
-            new Event('custom', {bubbles: true}),
-          );
-        }).toThrow("#text node can't be inserted in #document parent.");
+        // The <body> is the fragment's host parent, so the
+        // temporary event target is appended there.
+        fragmentRef.current.dispatchEvent(new Event('custom', {bubbles: true}));
 
-        expect(fragmentListener).toHaveBeenCalledTimes(0);
-        expect(bodyListener).toHaveBeenCalledTimes(0);
+        expect(fragmentListener).toHaveBeenCalledTimes(1);
+        expect(bodyListener).toHaveBeenCalledTimes(1);
       });
     });
   });
