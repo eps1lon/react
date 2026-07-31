@@ -99,5 +99,68 @@ describe('FragmentRefs', () => {
         expect(bodyListener).toHaveBeenCalledTimes(1);
       });
     });
+
+    describe('addEventListener()', () => {
+      // @gate enableFragmentRefs
+      it('attaches listeners to the host children inside singletons', async () => {
+        const fragmentRef = React.createRef();
+        const childRef = React.createRef();
+        const root = ReactDOMClient.createRoot(document);
+
+        await act(() => {
+          root.render(
+            <Fragment ref={fragmentRef}>
+              <html>
+                <body>
+                  <div ref={childRef} id="child" />
+                </body>
+              </html>
+            </Fragment>,
+          );
+        });
+
+        const currentTargets = [];
+        fragmentRef.current.addEventListener('click', event => {
+          currentTargets.push(event.currentTarget);
+        });
+
+        childRef.current.dispatchEvent(new Event('click', {bubbles: true}));
+
+        // TODO: Singletons should be collected as fragment children like
+        // HostComponents are. Currently the traversal descends through
+        // <html> and <body> and attaches the listener to the elements
+        // inside them.
+        expect(currentTargets).toEqual([childRef.current]);
+      });
+    });
+  });
+
+  describe('getClientRects()', () => {
+    // @gate enableFragmentRefs
+    it('measures the host children inside singletons', async () => {
+      const fragmentRef = React.createRef();
+      const childRef = React.createRef();
+      const root = ReactDOMClient.createRoot(document);
+
+      await act(() => {
+        root.render(
+          <Fragment ref={fragmentRef}>
+            <html>
+              <body>
+                <div ref={childRef} id="child" />
+              </body>
+            </html>
+          </Fragment>,
+        );
+      });
+
+      childRef.current.getClientRects = jest.fn(() => ['child-rect']);
+      document.documentElement.getClientRects = jest.fn(() => ['html-rect']);
+
+      // TODO: Singletons should be collected as fragment children like
+      // HostComponents are. Currently the traversal descends through
+      // <html> and <body> and measures the elements inside them.
+      expect(fragmentRef.current.getClientRects()).toEqual(['child-rect']);
+    });
   });
 });
