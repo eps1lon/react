@@ -392,6 +392,7 @@ function traverseVisibleInstancesAndTextInstances<A, B, C>(
   while (child !== null) {
     const isHostNode =
       child.tag === HostComponent ||
+      child.tag === HostSingleton ||
       (enableFragmentRefsTextNodes && child.tag === HostText);
     if (isHostNode && fn(child, a, b, c)) {
       return true;
@@ -402,7 +403,8 @@ function traverseVisibleInstancesAndTextInstances<A, B, C>(
       // Skip hidden subtrees
     } else {
       if (
-        (searchWithinHosts || child.tag !== HostComponent) &&
+        (searchWithinHosts ||
+          (child.tag !== HostComponent && child.tag !== HostSingleton)) &&
         traverseVisibleInstancesAndTextInstances(
           child.child,
           searchWithinHosts,
@@ -494,6 +496,7 @@ function findFragmentInstanceOrTextInstanceSiblings(
     }
     if (
       child.tag === HostComponent ||
+      child.tag === HostSingleton ||
       (enableFragmentRefsTextNodes && child.tag === HostText)
     ) {
       if (foundSelf) {

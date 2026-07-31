@@ -56,7 +56,9 @@ describe('FragmentRefs', () => {
         });
 
         await act(() => {
-          fragmentRef.current.focus();
+          // focus() would stop at <body>, which is a child of the fragment
+          // and usually already the activeElement.
+          document.getElementById('child-a').focus();
         });
         expect(document.activeElement.id).toEqual('child-a');
 
@@ -126,11 +128,9 @@ describe('FragmentRefs', () => {
 
         childRef.current.dispatchEvent(new Event('click', {bubbles: true}));
 
-        // TODO: Singletons should be collected as fragment children like
-        // HostComponents are. Currently the traversal descends through
-        // <html> and <body> and attaches the listener to the elements
-        // inside them.
-        expect(currentTargets).toEqual([childRef.current]);
+        // The <html> singleton is the fragment's child, so the listener is
+        // attached there and receives the bubbling event.
+        expect(currentTargets).toEqual([document.documentElement]);
       });
     });
   });
@@ -157,10 +157,9 @@ describe('FragmentRefs', () => {
       childRef.current.getClientRects = jest.fn(() => ['child-rect']);
       document.documentElement.getClientRects = jest.fn(() => ['html-rect']);
 
-      // TODO: Singletons should be collected as fragment children like
-      // HostComponents are. Currently the traversal descends through
-      // <html> and <body> and measures the elements inside them.
-      expect(fragmentRef.current.getClientRects()).toEqual(['child-rect']);
+      // The <html> singleton is the fragment's child, so it is measured
+      // instead of the elements inside it
+      expect(fragmentRef.current.getClientRects()).toEqual(['html-rect']);
     });
   });
 });
