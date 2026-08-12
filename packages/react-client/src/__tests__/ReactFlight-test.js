@@ -1752,6 +1752,130 @@ describe('ReactFlight', () => {
     }
   });
 
+  it('serves fake stack frame locations from module sprites', async () => {
+    function ServerComponent() {
+      const error = new Error('This is an error');
+      const originalStackLines = error.stack.split('\n');
+      // Fake a stack with many locations in the same module. Locations that
+      // are covered by the same sprite script must show the same source URL
+      // in the resulting stack, i.e. the same `?idx` suffix.
+      error.stack = [
+        originalStackLines[0],
+        // These four frames share one phase sprite script: the same cell
+        // under a different name, an adjacent cell on the same line and a
+        // cell on a different line of the same band.
+        '    at Mid (file:///sprite-module.js:23:13)',
+        '    at MidAlias (file:///sprite-module.js:23:13)',
+        '    at SameLine (file:///sprite-module.js:23:20)',
+        '    at SameBand (file:///sprite-module.js:40:13)',
+        // A column on a different pitch phase is served by a separate script.
+        '    at OtherPhase (file:///sprite-module.js:23:14)',
+        // Low columns are served by dedicated per-column scripts whose cells
+        // span two lines, one script per column and band.
+        '    at ColumnOne (file:///sprite-module.js:20:1)',
+        '    at ColumnOneAgain (file:///sprite-module.js:30:1)',
+        '    at ColumnTwo (file:///sprite-module.js:21:2)',
+        '    at ColumnThree (file:///sprite-module.js:22:3)',
+        // The last line of the first band and the first line of the second.
+        '    at BandEnd (file:///sprite-module.js:64:30)',
+        '    at BandStart (file:///sprite-module.js:65:1)',
+        // A wide column on the same pitch phase as the first frames replaces
+        // that script with a wider one. Later requests use the wider script.
+        '    at Wide (file:///sprite-module.js:23:503)',
+        '    at AfterWide (file:///sprite-module.js:50:13)',
+        // Low columns on line 1 cannot be encoded by a sprite and fall back
+        // to a one-off script that clamps the column.
+        '    at FirstLine (file:///sprite-module.js:1:2)',
+        ...originalStackLines.slice(2),
+      ].join('\n');
+      throw error;
+    }
+
+    const findSourceMapURL = jest.fn(filename => {
+      return filename + '.map';
+    });
+    const errors = [];
+    class MyErrorBoundary extends React.Component {
+      state = {error: null};
+      static getDerivedStateFromError(error) {
+        return {error};
+      }
+      componentDidCatch(error, componentInfo) {
+        errors.push(error);
+      }
+      render() {
+        if (this.state.error) {
+          return null;
+        }
+        return this.props.children;
+      }
+    }
+    const ClientErrorBoundary = clientReference(MyErrorBoundary);
+
+    function App() {
+      return ReactServer.createElement(
+        ClientErrorBoundary,
+        null,
+        ReactServer.createElement(ServerComponent),
+      );
+    }
+
+    const transport = ReactNoopFlightServer.render(<App />, {
+      onError(x) {
+        return 'a digest';
+      },
+      filterStackFrame(filename, functionName, lineNumber, columnNumber) {
+        return filename === 'file:///sprite-module.js';
+      },
+    });
+
+    await act(() => {
+      startTransition(() => {
+        ReactNoop.render(
+          ReactNoopFlightClient.read(transport, {findSourceMapURL}),
+        );
+      });
+    });
+
+    expect(errors.length).toBe(1);
+    if (__DEV__) {
+      const url = 'about://React/Server/file:///sprite-module.js';
+      // Every variable is one generated script. 14 frames are served by 9
+      // scripts.
+      const sharedPhaseScript = url + '?0';
+      const otherPhaseScript = url + '?1';
+      const columnOneScript = url + '?2';
+      const columnTwoScript = url + '?3';
+      const columnThreeScript = url + '?4';
+      const bandEndPhaseScript = url + '?5';
+      const secondBandColumnOneScript = url + '?6';
+      const widerPhaseScript = url + '?7';
+      const fallbackScript = url + '?8';
+      expect(errors[0].stack).toContain(
+        'Error: This is an error\n' +
+          `    at Mid (${sharedPhaseScript}:23:13)\n` +
+          `    at MidAlias (${sharedPhaseScript}:23:13)\n` +
+          `    at SameLine (${sharedPhaseScript}:23:20)\n` +
+          `    at SameBand (${sharedPhaseScript}:40:13)\n` +
+          `    at OtherPhase (${otherPhaseScript}:23:14)\n` +
+          `    at ColumnOne (${columnOneScript}:20:1)\n` +
+          `    at ColumnOneAgain (${columnOneScript}:30:1)\n` +
+          `    at ColumnTwo (${columnTwoScript}:21:2)\n` +
+          `    at ColumnThree (${columnThreeScript}:22:3)\n` +
+          `    at BandEnd (${bandEndPhaseScript}:64:30)\n` +
+          `    at BandStart (${secondBandColumnOneScript}:65:1)\n` +
+          `    at Wide (${widerPhaseScript}:23:503)\n` +
+          `    at AfterWide (${widerPhaseScript}:50:13)\n` +
+          `    at FirstLine (${fallbackScript}:1:`,
+      );
+      // Even though many locations were requested, the source map is looked
+      // up (and the scripts it is attached to are created) once per module.
+      expect(findSourceMapURL.mock.calls).toEqual([
+        ['file:///sprite-module.js', 'Server'],
+      ]);
+    }
+  });
+
   it('should include server components in warning stacks', async () => {
     function Component() {
       // Trigger key warning

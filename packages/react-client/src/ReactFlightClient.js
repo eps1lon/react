@@ -94,6 +94,8 @@ import {
 
 import getComponentNameFromType from 'shared/getComponentNameFromType';
 
+import DefaultPrepareStackTrace from 'shared/DefaultPrepareStackTrace';
+
 import {getOwnerStackByComponentInfoInDev} from 'shared/ReactComponentInfoStack';
 
 import hasOwnProperty from 'shared/hasOwnProperty';
@@ -3678,6 +3680,48 @@ const fakeFunctionCache: Map<string, FakeFunction<any>> = __DEV__
   : (null as any);
 
 let fakeFunctionIdx = 0;
+
+const fakeFunctionComment =
+  '/* This module was rendered by a Server Component. Turn on Source Maps to see the server source. */';
+
+function appendFakeFunctionScriptFooter(
+  code: string,
+  filename: string,
+  sourceMap: null | string,
+  environmentName: string,
+): string {
+  if (filename.startsWith('/')) {
+    // If the filename starts with `/` we assume that it is a file system file
+    // rather than relative to the current host. Since on the server fully qualified
+    // stack traces use the file path.
+    // TODO: What does this look like on Windows?
+    filename = 'file://' + filename;
+  }
+
+  if (sourceMap) {
+    // We use the prefix about://React/ to separate these from other files listed in
+    // the Chrome DevTools. We need a "host name" and not just a protocol because
+    // otherwise the group name becomes the root folder. Ideally we don't want to
+    // show these at all but there's two reasons to assign a fake URL.
+    // 1) A printed stack trace string needs a unique URL to be able to source map it.
+    // 2) If source maps are disabled or fails, you should at least be able to tell
+    //    which file it was.
+    code +=
+      '\n//# sourceURL=about://React/' +
+      encodeURIComponent(environmentName) +
+      '/' +
+      encodeURI(filename) +
+      '?' +
+      fakeFunctionIdx++;
+    code += '\n//# sourceMappingURL=' + sourceMap;
+  } else if (filename) {
+    code += '\n//# sourceURL=' + encodeURI(filename);
+  } else {
+    code += '\n//# sourceURL=<anonymous>';
+  }
+  return code;
+}
+
 function createFakeFunction<T>(
   name: string,
   filename: string,
@@ -3690,9 +3734,6 @@ function createFakeFunction<T>(
 ): FakeFunction<T> {
   // This creates a fake copy of a Server Module. It represents a module that has already
   // executed on the server but we re-execute a blank copy for its stack frames on the client.
-
-  const comment =
-    '/* This module was rendered by a Server Component. Turn on Source Maps to see the server source. */';
 
   if (!name) {
     // An eval:ed function with no name gets the name "eval". We give it something more descriptive.
@@ -3795,41 +3836,18 @@ function createFakeFunction<T>(
 
   if (enclosingLine < 1) {
     // If the function starts at the first line, we append the comment after.
-    code = code + '\n' + comment;
+    code = code + '\n' + fakeFunctionComment;
   } else {
     // Otherwise we prepend the comment on the first line.
-    code = comment + code;
+    code = fakeFunctionComment + code;
   }
 
-  if (filename.startsWith('/')) {
-    // If the filename starts with `/` we assume that it is a file system file
-    // rather than relative to the current host. Since on the server fully qualified
-    // stack traces use the file path.
-    // TODO: What does this look like on Windows?
-    filename = 'file://' + filename;
-  }
-
-  if (sourceMap) {
-    // We use the prefix about://React/ to separate these from other files listed in
-    // the Chrome DevTools. We need a "host name" and not just a protocol because
-    // otherwise the group name becomes the root folder. Ideally we don't want to
-    // show these at all but there's two reasons to assign a fake URL.
-    // 1) A printed stack trace string needs a unique URL to be able to source map it.
-    // 2) If source maps are disabled or fails, you should at least be able to tell
-    //    which file it was.
-    code +=
-      '\n//# sourceURL=about://React/' +
-      encodeURIComponent(environmentName) +
-      '/' +
-      encodeURI(filename) +
-      '?' +
-      fakeFunctionIdx++;
-    code += '\n//# sourceMappingURL=' + sourceMap;
-  } else if (filename) {
-    code += '\n//# sourceURL=' + encodeURI(filename);
-  } else {
-    code += '\n//# sourceURL=<anonymous>';
-  }
+  code = appendFakeFunctionScriptFooter(
+    code,
+    filename,
+    sourceMap,
+    environmentName,
+  );
 
   let fn: FakeFunction<T>;
   try {
@@ -3854,6 +3872,259 @@ function createFakeFunction<T>(
   return fn;
 }
 
+// Most locations can be served from "sprite" scripts so that we only need a
+// constant number of eval:ed scripts per module (and therefore per source map)
+// instead of one per unique location. A sprite covers a band of lines of the
+// module with a cell at every representable position within it. A cell is an
+// arrow function immediately followed by its callsite: `_=>_(),`. The cells are
+// wrapped in one factory per line so that every request for a position mints
+// fresh function objects, which lets the same cell serve any frame name by
+// redefining the `name` of the returned function.
+const SPRITE_BAND_LINES = 64;
+// The width of the `_=>_(),` cell. Callsite columns on a line repeat with this
+// pitch, so covering every exact column takes this many phase-shifted scripts.
+const SPRITE_CELL_WIDTH = 7;
+// Cells beyond this per-line count (roughly 7000 columns) are served by
+// one-off scripts instead of padding whitespace for a whole band.
+const SPRITE_MAX_CELLS_PER_LINE = 1024;
+
+type FakeFunctionSprite = {
+  // The number of cells per line in a phase sprite. Zero for low column
+  // sprites whose factories return the cell function directly instead of a
+  // line of cells.
+  cellsPerLine: number,
+  factories: Array<() => any>,
+};
+
+type FakeModuleScripts = {
+  sourceMap: null | string,
+  filename: string,
+  environmentName: string,
+  sprites: Map<string, FakeFunctionSprite>,
+};
+
+// TODO: This cache should technically live on the response since the _debugFindSourceMapURL
+// function is an input and can vary by response.
+const fakeScriptCache: Map<string, FakeModuleScripts> = __DEV__
+  ? new Map()
+  : (null as any);
+
+let canUseFakeFunctionSprites: null | boolean = null;
+function checkCanUseFakeFunctionSprites(): boolean {
+  // A sprite cell has to be able to carry any frame's function name, which we
+  // can only stamp onto its function objects with Object.defineProperty. Not
+  // every engine reflects a redefined `name` in stack traces (V8 does,
+  // JavaScriptCore does not), so we feature test it with a probe cell.
+  try {
+    // eslint-disable-next-line no-eval
+    const factory = (0, eval)('()=>_=>_()');
+    const fn = factory();
+    Object.defineProperty(fn, 'name', {value: 'react_fake_function_probe'});
+    const error = fn(() => new Error('react-stack-top-frame'));
+    const prevPrepareStackTrace = Error.prepareStackTrace;
+    Error.prepareStackTrace = DefaultPrepareStackTrace;
+    let stack;
+    try {
+      stack = error.stack;
+    } finally {
+      Error.prepareStackTrace = prevPrepareStackTrace;
+    }
+    return (
+      typeof stack === 'string' &&
+      stack.indexOf('react_fake_function_probe') !== -1
+    );
+  } catch (x) {
+    return false;
+  }
+}
+
+function createFakeFunctionSpritePhase(
+  moduleScripts: FakeModuleScripts,
+  band: number,
+  phase: number,
+  cellsPerLine: number,
+): FakeFunctionSprite {
+  // Each line of the band carries cells whose callsites sit at columns
+  // 4+phase, 11+phase, ... (the `_()` starts after the 3 characters of its
+  // arrow `_=>`).
+  const lineCells = ' '.repeat(phase) + '_=>_(),'.repeat(cellsPerLine);
+  let code;
+  if (band === 0) {
+    // Line 1 opens the outer array and its own line factory inline. The prefix
+    // is 7 characters so that line 1 cells stay on the same column pitch as
+    // every other line, just one cell later.
+    code = '[ ()=>[' + lineCells;
+  } else {
+    // The comment goes on line 1 followed by newline padding so that the
+    // band's lines land at their file positions. The opening glue sits at the
+    // end of the last padding line.
+    code =
+      fakeFunctionComment +
+      '\n'.repeat(band * SPRITE_BAND_LINES - 1) +
+      '[()=>[\n' +
+      lineCells;
+  }
+  for (let i = 1; i < SPRITE_BAND_LINES; i++) {
+    // Close the previous line's cells and open the next line's factory. The
+    // next line then starts directly with its cells.
+    code += '],()=>[\n' + lineCells;
+  }
+  code += ']]';
+  if (band === 0) {
+    code += '\n' + fakeFunctionComment;
+  }
+  code = appendFakeFunctionScriptFooter(
+    code,
+    moduleScripts.filename,
+    moduleScripts.sourceMap,
+    moduleScripts.environmentName,
+  );
+  // eslint-disable-next-line no-eval
+  const factories = (0, eval)(code);
+  return {cellsPerLine, factories};
+}
+
+function createFakeFunctionSpriteLowColumn(
+  moduleScripts: FakeModuleScripts,
+  band: number,
+  col: number,
+): FakeFunctionSprite {
+  // Columns 1-3 leave no room for the cell's arrow on the same line, so each
+  // factory's arrow sits at the end of the previous line and only the callsite
+  // `_()` occupies the target line. One script covers a single column for
+  // every line of the band.
+  const pad = ' '.repeat(col - 1);
+  let code;
+  let lineCount = SPRITE_BAND_LINES;
+  if (band === 0) {
+    // Line 1 has no previous line to host an arrow so it is not covered.
+    code = '[()=>_=>';
+    lineCount = SPRITE_BAND_LINES - 1;
+  } else {
+    code =
+      fakeFunctionComment +
+      '\n'.repeat(band * SPRITE_BAND_LINES - 1) +
+      '[()=>_=>';
+  }
+  for (let i = 1; i < lineCount; i++) {
+    code += '\n' + pad + '_(),()=>_=>';
+  }
+  code += '\n' + pad + '_()]';
+  if (band === 0) {
+    code += '\n' + fakeFunctionComment;
+  }
+  code = appendFakeFunctionScriptFooter(
+    code,
+    moduleScripts.filename,
+    moduleScripts.sourceMap,
+    moduleScripts.environmentName,
+  );
+  // eslint-disable-next-line no-eval
+  const factories = (0, eval)(code);
+  return {cellsPerLine: 0, factories};
+}
+
+function getFakeModuleScripts(
+  response: Response,
+  filename: string,
+  environmentName: string,
+): FakeModuleScripts {
+  const cacheKey = environmentName + '\n' + filename;
+  let moduleScripts = fakeScriptCache.get(cacheKey);
+  if (moduleScripts === undefined) {
+    const findSourceMapURL = response._debugFindSourceMapURL;
+    const sourceMap = findSourceMapURL
+      ? findSourceMapURL(filename, environmentName)
+      : null;
+    moduleScripts = {
+      sourceMap,
+      filename,
+      environmentName,
+      sprites: new Map(),
+    };
+    fakeScriptCache.set(cacheKey, moduleScripts);
+  }
+  return moduleScripts;
+}
+
+function getFakeFunctionFromSprite<T>(
+  moduleScripts: FakeModuleScripts,
+  name: string,
+  line: number,
+  col: number,
+): null | FakeFunction<T> {
+  if (line < 1 || col < 1) {
+    // Unknown positions are clamped by the fallback instead.
+    return null;
+  }
+  const band = ((line - 1) / SPRITE_BAND_LINES) | 0;
+  const bandStart = band * SPRITE_BAND_LINES + 1;
+  try {
+    let fn;
+    if (col < 4) {
+      if (line === 1) {
+        // There is no previous line to host this cell's arrow.
+        return null;
+      }
+      const spriteKey = band + 'c' + col;
+      let sprite = moduleScripts.sprites.get(spriteKey);
+      if (sprite === undefined) {
+        sprite = createFakeFunctionSpriteLowColumn(moduleScripts, band, col);
+        moduleScripts.sprites.set(spriteKey, sprite);
+      }
+      const factory = sprite.factories[line - bandStart - (band === 0 ? 1 : 0)];
+      fn = factory();
+    } else {
+      const phase = (col - 4) % SPRITE_CELL_WIDTH;
+      let cellIndex = (col - 4 - phase) / SPRITE_CELL_WIDTH;
+      if (band === 0 && line === 1) {
+        // Line 1 cells start after the 7 character `[ ()=>[` prefix.
+        if (col < 11 + phase) {
+          return null;
+        }
+        cellIndex = (col - 11 - phase) / SPRITE_CELL_WIDTH;
+      }
+      if (cellIndex >= SPRITE_MAX_CELLS_PER_LINE) {
+        return null;
+      }
+      const spriteKey = band + 'p' + phase;
+      let sprite = moduleScripts.sprites.get(spriteKey);
+      if (sprite === undefined || sprite.cellsPerLine <= cellIndex) {
+        // Callsite columns in dev transpiled code sit overwhelmingly near the
+        // start of the line, so start narrow and grow by doubling when a
+        // wider column shows up.
+        let cellsPerLine = 4;
+        while (cellsPerLine <= cellIndex) {
+          cellsPerLine *= 2;
+        }
+        // If a sprite already exists but is too narrow we replace it with a
+        // wider one. Cells handed out from the old script stay valid through
+        // the fake function cache.
+        sprite = createFakeFunctionSpritePhase(
+          moduleScripts,
+          band,
+          phase,
+          cellsPerLine,
+        );
+        moduleScripts.sprites.set(spriteKey, sprite);
+      }
+      const cells = sprite.factories[line - bandStart]();
+      fn = cells[cellIndex];
+    }
+    Object.defineProperty(
+      fn,
+      // $FlowFixMe[cannot-write] -- `name` is configurable though.
+      'name',
+      {value: name === '' ? '<anonymous>' : name},
+    );
+    return fn;
+  } catch (x) {
+    // If eval fails, such as if in an environment that doesn't support it,
+    // the fallback handles this position instead.
+    return null;
+  }
+}
+
 function buildFakeCallStack<T>(
   response: Response,
   stack: ReactStackTrace,
@@ -3872,22 +4143,34 @@ function buildFakeCallStack<T>(
     let fn = fakeFunctionCache.get(frameKey);
     if (fn === undefined) {
       const [name, filename, line, col, enclosingLine, enclosingCol] = frame;
-      const findSourceMapURL = response._debugFindSourceMapURL;
-      const sourceMap = findSourceMapURL
-        ? findSourceMapURL(filename, environmentName)
-        : null;
-      fn = createFakeFunction(
-        name,
+      const moduleScripts = getFakeModuleScripts(
+        response,
         filename,
-        sourceMap,
-        line,
-        col,
-        useEnclosingLine ? line : enclosingLine,
-        useEnclosingLine ? col : enclosingCol,
         environmentName,
       );
-      // TODO: This cache should technically live on the response since the _debugFindSourceMapURL
-      // function is an input and can vary by response.
+      if (canUseFakeFunctionSprites === null) {
+        canUseFakeFunctionSprites = checkCanUseFakeFunctionSprites();
+      }
+      let spriteFn = null;
+      if (canUseFakeFunctionSprites) {
+        // A sprite cell encodes the function definition right next to the
+        // callsite which is also what the enclosing line workaround encodes,
+        // so both variants resolve to the same cell.
+        spriteFn = getFakeFunctionFromSprite<T>(moduleScripts, name, line, col);
+      }
+      fn =
+        spriteFn !== null
+          ? spriteFn
+          : createFakeFunction(
+              name,
+              filename,
+              moduleScripts.sourceMap,
+              line,
+              col,
+              useEnclosingLine ? line : enclosingLine,
+              useEnclosingLine ? col : enclosingCol,
+              environmentName,
+            );
       fakeFunctionCache.set(frameKey, fn);
     }
     callStack = fn.bind(null, callStack);
