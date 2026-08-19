@@ -43,6 +43,8 @@ jobs:
       # We use github.token to download the sizebot results artifact from the
       # triggering runtime_build_and_test.yml run
       actions: read
+      # Used to check out the renderer this workflow runs
+      contents: read
       # Used to create and update the sizebot comment on the pull request
       pull-requests: write
     steps:
@@ -50,6 +52,10 @@ jobs:
       # The thresholds, the critical bundle list and the comment template all
       # come from here and cannot be changed by the pull request being measured.
       - uses: actions/checkout@v4
+        with:
+          # This job holds a token that can write to the repository, and it has
+          # no use for git credentials after the checkout.
+          persist-credentials: false
 
       - name: Resolve pull request and existing comment
         id: resolve
